@@ -65,7 +65,7 @@ def main():
     freq = np.linspace(0, samplerate, len(data))
 
     # FIR filter's impulse response
-    h = LPF_window(81, 10000, len(data), samplerate)
+    h = LPF_window(81, 3000, len(data), samplerate)
     plt.plot(h)
     plt.title('FIR impulse response')
     plt.xlabel('Time [sample]')
