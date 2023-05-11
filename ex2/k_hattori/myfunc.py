@@ -4,15 +4,19 @@ import soundfile as sf
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def wavload(path):
-    """"Reads audio from the path argument and returns data and sampling rate"""
+    """"Reads audio from the path argument and
+      returns data and sampling rate"""
     data, samplerate = sf.read(path)
     return data, samplerate
 
 def STFT(data, WIDTH):
-    """Receives data and window widths and then returns STFT results in complex numbers"""
+    """Receives data and window widths and then
+      returns STFT results in complex numbers"""
     OVERLAP = int(WIDTH / 2)
-    split_number = len(np.arange((WIDTH/2), data.shape[0], (WIDTH - OVERLAP)))  # Number of audio segments
-    fframe_size = len(np.fft.fft(data[:WIDTH])) # Size of Fourier transformed data with splited
+    # Number of audio segments
+    split_number = len(np.arange((WIDTH/2), data.shape[0], (WIDTH - OVERLAP)))
+    # Size of Fourier transformed data with splited
+    fframe_size = len(np.fft.fft(data[:WIDTH]))
 
     spec = np.zeros([split_number, fframe_size], dtype=complex)
     window = np.hamming(WIDTH)

@@ -14,8 +14,8 @@ def convolution(x, h):
     return y
 
 def LPF_window(length, cutoff, size, samplerate): # length must be odd number
-    """Create a filter with order is length and cutoff frequency is cutoff with size.
-    Returns FIR impulse respoonse"""
+    """Create a filter with order is length and cutoff frequency is cutoff
+      with size. Returns FIR impulse respoonse"""
 
     N = int((length - 1) / 2) # tap number
     nyq_sample = int(size / 2)  # nyquist frequency [sample]
@@ -28,7 +28,8 @@ def LPF_window(length, cutoff, size, samplerate): # length must be odd number
     im_response = np.fft.ifft(F_filter)
     im_response[N:-N] = 0   # Censoring of impulse response
     im_response = np.fft.ifftshift(im_response)
-    windowed = window * im_response[nyq_sample - N : nyq_sample + N + 1]    # multiplying window function
+     # multiplying window function
+    windowed = window * im_response[nyq_sample - N : nyq_sample + N + 1]
     im_response[nyq_sample - N : nyq_sample + N + 1] = windowed
     im_response = np.fft.fftshift(im_response)
     F_filter = np.fft.fft(im_response)
@@ -73,7 +74,8 @@ def main():
 
     # convolute data and impulse response
     filter_data = convolution(data, h)
-    filter_time = np.linspace(0, len(filter_data)/samplerate, len(filter_data))
+    FILTER_TOTAL_TIME = len(filter_data) / samplerate
+    filter_time = np.linspace(0, FILTER_TOTAL_TIME, len(filter_data))
 
     # Show Original and Filtered Sound
     plt.subplot(211)
@@ -93,7 +95,7 @@ def main():
     spec = mf.STFT(data, 1024)
     mf.spectrogram(TOTAL_TIME, samplerate, spec)
     spec_f = mf.STFT(filter_data, 1024)
-    mf.spectrogram(len(filter_data)/samplerate, samplerate, spec_f)
+    mf.spectrogram(FILTER_TOTAL_TIME, samplerate, spec_f)
 
     # Save Filtered Soundfile
     sf.write(file='Fiter_ONSEI.wav', data=filter_data, samplerate=samplerate)
