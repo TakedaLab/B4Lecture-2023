@@ -39,5 +39,8 @@ def spectrogram(TOTAL_TIME, samplerate, data):
     plt.rcParams["font.size"] = 12
     plt.imshow(amp.T, extent=[0, TOTAL_TIME, 0, samplerate/2]
                , aspect='auto')
+    plt.xlim(0, TOTAL_TIME)
+    plt.ylim(0, samplerate/2)
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [s]')
+    plt.show()
