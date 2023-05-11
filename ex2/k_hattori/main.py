@@ -43,7 +43,7 @@ def LPF_window(length, cutoff, size, samplerate): # length must be odd number
     filter = np.fft.fft(h)
     plt.subplot(211)
     plt.title('FIR properties')
-    plt.plot(freq, np.abs(filter))
+    plt.plot(freq, 20*np.log(np.abs(filter)))
     plt.ylabel('Amplitude [dB]')
     plt.subplot(212)
     plt.plot(freq, np.arctan2(np.imag(filter), np.real(filter)))
@@ -65,11 +65,11 @@ def main():
     freq = np.linspace(0, samplerate, len(data))
 
     # FIR filter's impulse response
-    h = LPF_window(81, 3000, len(data), samplerate)
+    h = LPF_window(81, 10000, len(data), samplerate)
     plt.plot(h)
     plt.title('FIR impulse response')
     plt.xlabel('Time [sample]')
-    plt.ylabel('Amplitude')
+    plt.ylabel('Magnitude')
     plt.show()
 
     # convolute data and impulse response
@@ -93,9 +93,9 @@ def main():
 
     # Show spectrogram
     spec = mf.STFT(data, 1024)
-    mf.spectrogram(TOTAL_TIME, samplerate, spec)
     spec_f = mf.STFT(filter_data, 1024)
-    mf.spectrogram(FILTER_TOTAL_TIME, samplerate, spec_f)
+    mf.spectrogram_double(TOTAL_TIME, FILTER_TOTAL_TIME,
+                           samplerate, spec, spec_f)
 
     # Save Filtered Soundfile
     sf.write(file='Fiter_ONSEI.wav', data=filter_data, samplerate=samplerate)

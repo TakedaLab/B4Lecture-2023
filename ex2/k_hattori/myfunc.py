@@ -49,3 +49,40 @@ def spectrogram(TOTAL_TIME, samplerate, data):
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [s]')
     plt.show()
+
+def spectrogram_double(TOTAL_TIME1, TOTAL_TIME2, samplerate, data1, data2):
+    """Show Spectrogram with subplot (Original and Filtered)"""
+    plt.rcParams["image.cmap"] = "jet"
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.rcParams["font.size"] = 12
+    amp1 = np.abs(data1[:,int(data1.shape[1]/2)::-1])
+    amp1 = np.log(amp1**2)
+    amp2 = np.abs(data2[:,int(data2.shape[1]/2)::-1])
+    amp2 = np.log(amp2**2)
+
+    fig = plt.figure(figsize=(6,6))
+    ax1 = fig.add_subplot(211)
+    ax1.set_title("Spectrogram")
+    ax1.set_title("Original")
+    im = ax1.imshow(amp1.T, extent=[0, TOTAL_TIME1, 0, samplerate/2]
+               , aspect='auto', vmax=10, vmin=-25)
+    divider1 = make_axes_locatable(ax1)
+    cax1 = divider1.append_axes("right", size="2%", pad=0.1)
+    cbar = plt.colorbar(im, cax=cax1)
+    ax1.set_ylabel("Frequency [Hz]")
+    ax1.set_xlim(0, TOTAL_TIME1)
+    ax1.set_ylim(0, samplerate/2)
+
+    ax2 = fig.add_subplot(212)
+    ax2.set_title("Filtered")
+    im = ax2.imshow(amp2.T, extent=[0, TOTAL_TIME2, 0, samplerate/2]
+               , aspect='auto', vmax=10, vmin=-25)
+    divider2 = make_axes_locatable(ax2)
+    cax2 = divider2.append_axes("right", size="2%", pad=0.1)
+    cbar = plt.colorbar(im, cax=cax2)
+    ax2.set_ylabel("Frequency [Hz]")
+    ax2.set_xlim(0, TOTAL_TIME2)
+    ax2.set_ylim(0, samplerate/2)
+
+    fig.tight_layout()
+    plt.show()
