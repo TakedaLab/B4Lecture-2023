@@ -202,7 +202,7 @@ if __name__ == "__main__":
     cax = fig.add_axes([0.92, 0.395, 0.02, 0.2])  # x, y, width, height
     spec_d = sound_spec.pcolormesh(
         spec_t,
-        freq[1: int(Fs / 2)],
+        freq[1 : int(Fs / 2)],
         20 * np.log(np.abs(frame_group)),
         cmap="plasma",
         shading="nearest",

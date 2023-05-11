@@ -19,12 +19,10 @@ parser.add_argument(
     type=int,
 )
 parser.add_argument(
-    "-r", "--overlap_r", help="overlap rate between 0 to 1",
-    default=0.5, type=float
+    "-r", "--overlap_r", help="overlap rate between 0 to 1", default=0.5, type=float
 )
 parser.add_argument(
-    "-l", "--y_limit", help="limit of spectrogram's frequency",
-    default=25000, type=int
+    "-l", "--y_limit", help="limit of spectrogram's frequency", default=25000, type=int
 )
 
 
@@ -41,7 +39,7 @@ def conv(data: np.ndarray, filter: np.ndarray) -> np.ndarray:
     """
     y = np.zeros(len(data) + len(filter) - 1)
     for i in range(len(data)):
-        y[i: i + len(filter)] += data[i] * filter
+        y[i : i + len(filter)] += data[i] * filter
     return y[: len(data)]
 
 
@@ -102,8 +100,7 @@ if __name__ == "__main__":
         data, overlap_r=overlap_r, Fs=Fs, y_lim=spec_y_lim, s_name="origin"
     )
     F.show_spectrogram(
-        filtered_data, overlap_r=overlap_r, Fs=Fs,
-        y_lim=spec_y_lim, s_name="filtered"
+        filtered_data, overlap_r=overlap_r, Fs=Fs, y_lim=spec_y_lim, s_name="filtered"
     )
     F.extract_sound(filtered_data, file_name="Re_voice", sample_rate=48000)
     plt.show()
