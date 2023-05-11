@@ -103,7 +103,7 @@ def istft(data: np.ndarray, overlap: float, length: int) -> np.ndarray:
 def show_spectrogram(
     data: np.ndarray, overlap_r=0.5, Fs=512, sample_rate=48000, y_lim=20000, s_name=""
 ) -> None:
-    """To show spectrogram and save
+    """To show spectrogram and save.
 
     Args:
         data (np.ndarray): sound signal
@@ -151,7 +151,7 @@ def show_spectrogram(
 
 
 def extract_sound(data: np.ndarray, file_name: str, sample_rate: int) -> None:
-    """To write sound signal to a wav file
+    """To write sound signal to a wav file.
 
     Args:
         data (np.ndarray): sound signal

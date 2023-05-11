@@ -1,9 +1,10 @@
+"""Some function to create filter."""
 import numpy as np
 
 
 # sinc function
 def sinc(x: float) -> float:
-    """sinc function
+    """Sinc function.
 
     Args:
         x (float): data to adapt to sinc
@@ -19,7 +20,7 @@ def sinc(x: float) -> float:
 
 # bond pass filter
 def bpf(low_f: int, high_f: int, sample_rate: int, f_size: int) -> np.ndarray:
-    """generate bond pass filter
+    """Generate bond pass filter.
 
     Args:
         low_f (int): low point of bond
@@ -46,7 +47,7 @@ def bpf(low_f: int, high_f: int, sample_rate: int, f_size: int) -> np.ndarray:
 
 # bond elimination filter
 def bef(low_f: int, high_f: int, sample_rate: int, f_size: int) -> np.ndarray:
-    """generate bond elimination filter
+    """Generate bond elimination filter.
 
     Args:
         low_f (int): low point of bond
@@ -75,7 +76,7 @@ def bef(low_f: int, high_f: int, sample_rate: int, f_size: int) -> np.ndarray:
 
 # low pass filter
 def lpf(frequency: int, sample_rate: int, f_size: int) -> np.ndarray:
-    """generate low pass filter
+    """Generate low pass filter.
 
     Args:
         frequency (int): cutoff frequency
@@ -100,7 +101,7 @@ def lpf(frequency: int, sample_rate: int, f_size: int) -> np.ndarray:
 
 # high pass filter
 def hpf(frequency: int, sample_rate: int, f_size: int) -> np.ndarray:
-    """generate high pass filter
+    """Generate high pass filter
 
     Args:
         frequency (int): cutoff frequency

@@ -28,7 +28,7 @@ parser.add_argument(
 
 # convolution
 def conv(data: np.ndarray, filter: np.ndarray) -> np.ndarray:
-    """To adapt convolution with data an h
+    """To adapt convolution with data an h.
 
     Args:
         data (np.ndarray): signal which needed convolution
