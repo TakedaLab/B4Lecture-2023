@@ -36,6 +36,7 @@ def load_sound(sound_path: str) -> tuple[np.ndarray, int]:
     data, sample_rate = sf.read(file=sound_path)
     return data, sample_rate
 
+
 def stft(
     data: np.ndarray, overlap: float, Fs: int, sample_rate: int
 ) -> tuple[np.ndarray, np.ndarray, int]:
@@ -66,10 +67,12 @@ def stft(
         frame_group.append(frame)
         frame_s += frame_dist
     freq = np.fft.fftfreq(Fs, d=1 / sample_rate)
-    frame_positive = np.delete(frame_group, slice(int(Fs / 2) - 1, Fs), 1
-    )# cut negative data
+    frame_positive = np.delete(
+        frame_group, slice(int(Fs / 2) - 1, Fs), 1
+    )  # cut negative data
     frame_positive = frame_positive.T
     return frame_positive, freq[1 : int(Fs / 2)], frame_s
+
 
 def istft(data: np.ndarray, overlap: float, length: int) -> np.ndarray:
     """Inverse short-time fourier transform.
@@ -96,7 +99,10 @@ def istft(data: np.ndarray, overlap: float, length: int) -> np.ndarray:
         seg_s += int(Fs * (1 - overlap))
     return origin_sound
 
-def show_spectrogram(data: np.ndarray,overlap_r= 0.5, Fs = 512, sample_rate = 48000, y_lim = 20000,s_name = "") -> None:
+
+def show_spectrogram(
+    data: np.ndarray, overlap_r=0.5, Fs=512, sample_rate=48000, y_lim=20000, s_name=""
+) -> None:
     """To show spectrogram and save
 
     Args:
@@ -109,10 +115,10 @@ def show_spectrogram(data: np.ndarray,overlap_r= 0.5, Fs = 512, sample_rate = 48
                                 Defaults will not save the image. Defaults to "".
     """
 
-    #adapt data to short-time fourier transform
+    # adapt data to short-time fourier transform
     frame_group, freq, frame_l = stft(data, overlap_r, Fs, sample_rate)
 
-    #compute time
+    # compute time
     spec_t = (
         np.arange(start=0, stop=frame_l, step=int(Fs * (1 - overlap_r))) / sample_rate
     )
@@ -126,16 +132,14 @@ def show_spectrogram(data: np.ndarray,overlap_r= 0.5, Fs = 512, sample_rate = 48
         cmap="plasma",
         shading="nearest",
         vmin=-500,
-        vmax= 50
+        vmax=50,
     )
 
     # add colorbar
     color_b = plt.colorbar(pcm, ax=ax)
 
     # set y limit
-    if y_lim <= max(
-        freq
-    ):  # if maximum freq bigger than limit then set y-axis limit
+    if y_lim <= max(freq):  # if maximum freq bigger than limit then set y-axis limit
         ax.set_ylim(0, y_lim)
     ax.set_xlabel("Time[s]")
     ax.set_ylabel("Frequency[Hz]")
@@ -144,6 +148,7 @@ def show_spectrogram(data: np.ndarray,overlap_r= 0.5, Fs = 512, sample_rate = 48
     if not s_name == "":
         fig.savefig(s_name)
     return None
+
 
 def extract_sound(data: np.ndarray, file_name: str, sample_rate: int) -> None:
     """To write sound signal to a wav file
@@ -154,8 +159,9 @@ def extract_sound(data: np.ndarray, file_name: str, sample_rate: int) -> None:
         sample_rate (int): as the name implies
     """
 
-    sf.write(file=file_name+".wav", data=data, samplerate=sample_rate)
+    sf.write(file=file_name + ".wav", data=data, samplerate=sample_rate)
     return None
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -171,7 +177,6 @@ if __name__ == "__main__":
     spec_t = (
         np.arange(start=0, stop=frame_l, step=int(Fs * (1 - overlap_r))) / sample_rate
     )
-
 
     # create graph's group
     fig, axs = plt.subplots(3, 1, figsize=(10, 12))
@@ -197,8 +202,8 @@ if __name__ == "__main__":
     cax = fig.add_axes([0.92, 0.395, 0.02, 0.2])  # x, y, width, height
     spec_d = sound_spec.pcolormesh(
         spec_t,
-        freq[1 : int(Fs / 2)],
-        20 * np.log(np.abs(frame_positive)),
+        freq[1: int(Fs / 2)],
+        20 * np.log(np.abs(frame_group)),
         cmap="plasma",
         shading="nearest",
     )
