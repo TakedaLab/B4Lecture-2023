@@ -114,7 +114,6 @@ def show_spectrogram(
         s_name (str, optional): if want save the image, type a name to save
                                 Defaults will not save the image. Defaults to "".
     """
-
     # adapt data to short-time fourier transform
     frame_group, freq, frame_l = stft(data, overlap_r, Fs, sample_rate)
 
@@ -158,7 +157,6 @@ def extract_sound(data: np.ndarray, file_name: str, sample_rate: int) -> None:
         file_name (str): the name tha wav file to be
         sample_rate (int): as the name implies
     """
-
     sf.write(file=file_name + ".wav", data=data, samplerate=sample_rate)
     return None
 

@@ -101,7 +101,7 @@ def lpf(frequency: int, sample_rate: int, f_size: int) -> np.ndarray:
 
 # high pass filter
 def hpf(frequency: int, sample_rate: int, f_size: int) -> np.ndarray:
-    """Generate high pass filter
+    """Generate high pass filter.
 
     Args:
         frequency (int): cutoff frequency
