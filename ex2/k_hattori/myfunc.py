@@ -1,6 +1,6 @@
 """This file has functions to read wavfiles and handle spectrograms."""
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import soundfile as sf
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -32,8 +32,7 @@ def STFT(data, WIDTH):
     """
     OVERLAP = int(WIDTH / 2)
     # Number of audio segments
-    split_number = len(np.arange((WIDTH / 2),
-                                 data.shape[0], (WIDTH - OVERLAP)))
+    split_number = len(np.arange((WIDTH / 2), data.shape[0], (WIDTH - OVERLAP)))
     # Size of Fourier transformed data with splited
     fframe_size = len(np.fft.fft(data[:WIDTH]))
 
@@ -43,7 +42,7 @@ def STFT(data, WIDTH):
 
     # STFT
     for i in range(split_number):
-        frame = data[pos: pos + WIDTH]
+        frame = data[pos : pos + WIDTH]
         if len(frame) >= WIDTH:
             windowed = window * frame
             # Fourier transform of segmented audio
@@ -64,7 +63,7 @@ def spectrogram(TOTAL_TIME, samplerate, data):
     Returns:
         None
     """
-    amp = np.abs(data[:, int(data.shape[1] / 2):: -1])
+    amp = np.abs(data[:, int(data.shape[1] / 2) :: -1])
     amp = np.log(amp**2)
 
     plt.rcParams["image.cmap"] = "jet"
@@ -95,9 +94,9 @@ def spectrogram_double(TOTAL_TIME1, TOTAL_TIME2, samplerate, data1, data2):
     plt.rcParams["image.cmap"] = "jet"
     plt.rcParams["font.family"] = "Times New Roman"
     plt.rcParams["font.size"] = 12
-    amp1 = np.abs(data1[:, int(data1.shape[1] / 2):: -1])
+    amp1 = np.abs(data1[:, int(data1.shape[1] / 2) :: -1])
     amp1 = np.log(amp1**2)
-    amp2 = np.abs(data2[:, int(data2.shape[1] / 2):: -1])
+    amp2 = np.abs(data2[:, int(data2.shape[1] / 2) :: -1])
     amp2 = np.log(amp2**2)
 
     fig = plt.figure(figsize=(6, 6))

@@ -11,7 +11,7 @@ def convolution(x, h):
     y = np.zeros(len(x) + len(h) - 1)
     width = len(h)
     for i in range(len(x)):
-        y[i: i + width] += x[i] * h
+        y[i : i + width] += x[i] * h
 
     return y
 
@@ -41,8 +41,8 @@ def LPF_window(length, cutoff, size, samplerate):  # length must be odd number
     im_response[N:-N] = 0  # Censoring of impulse response
     im_response = np.fft.ifftshift(im_response)
     # multiplying window function
-    windowed = window * im_response[nyq_sample - N: nyq_sample + N + 1]
-    im_response[nyq_sample - N: nyq_sample + N + 1] = windowed
+    windowed = window * im_response[nyq_sample - N : nyq_sample + N + 1]
+    im_response[nyq_sample - N : nyq_sample + N + 1] = windowed
     im_response = np.fft.fftshift(im_response)
     F_filter = np.fft.fft(im_response)
 
@@ -112,8 +112,7 @@ def main():
     # Show spectrogram
     spec = mf.STFT(data, 1024)
     spec_f = mf.STFT(filter_data, 1024)
-    mf.spectrogram_double(TOTAL_TIME, FILTER_TOTAL_TIME,
-                          samplerate, spec, spec_f)
+    mf.spectrogram_double(TOTAL_TIME, FILTER_TOTAL_TIME, samplerate, spec, spec_f)
 
     # Save Filtered Soundfile
     sf.write(file="Fiter_ONSEI.wav", data=filter_data, samplerate=samplerate)
