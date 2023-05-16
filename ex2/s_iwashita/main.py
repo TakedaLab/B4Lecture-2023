@@ -7,6 +7,15 @@ import soundfile as sf
 
 
 def loadfile(filename):
+    """load sound file
+
+    Args:
+        filename (str): file name
+
+    Returns:
+        data (ndarray): sound data
+        sr (int): sample rate
+    """
     data, sr = sf.read(filename)
     return data, sr
 
@@ -16,7 +25,7 @@ def bpf(size, fc_low, fc_high, sr):
 
     Args:
         size (int): the size of filter
-        fc_low (int): ower cutoff frequency
+        fc_low (int): lower cutoff frequency
         fc_high (int): higher cutoff frequency
         sr (int): sample rate
 
@@ -47,8 +56,8 @@ def conv(left, right):
     """convolution
 
     Args:
-        l (ndarray): left arg
-        r (ndarray): rignt arg
+        left (ndarray): left arg
+        right (ndarray): rignt arg
 
     Returns:
         ndarray: convolution result
@@ -65,10 +74,14 @@ def main():
     parser = argparse.ArgumentParser("Design digital filters to filter audio")
 
     parser.add_argument("name", help="file name")
-    parser.add_argument("-s", "--size", help="the size of filter", default=100)
-    parser.add_argument("-fcl", "--fc_low", help="lower cutoff frequency", default=50)
     parser.add_argument(
-        "-fch", "--fc_high", help="higher cutoff frequency", default=2000
+        "-s", "--size", type=int, help="the size of filter", default=100
+    )
+    parser.add_argument(
+        "-fcl", "--fc_low", type=int, help="lower cutoff frequency", default=50
+    )
+    parser.add_argument(
+        "-fch", "--fc_high", type=int, help="higher cutoff frequency", default=2000
     )
 
     args = parser.parse_args()
@@ -81,14 +94,19 @@ def main():
     fc_low = args.fc_low
     fc_high = args.fc_high
 
+    # create band pass filter
     filter = bpf(size, fc_low, fc_high, sr)
 
+    # convolution of data and filter
     filtered_data = conv(data, filter)
     filtered_time = np.arange(0, len(filtered_data)) / sr
 
+    # convert filter to frequency domain
     filter_freq = np.fft.rfft(filter)
-    amp = np.abs(filter_freq)[: size // 2 + 1]
-    fil_phase = np.unwrap(np.angle(filter_freq))[: size // 2 + 1] * 180 / np.pi
+    # take the absolute value of filter_freq to get amplitude
+    amp = np.abs(filter_freq)
+    # unwrap phases
+    fil_phase = np.unwrap(np.angle(filter_freq))
     frequency = np.linspace(0, sr / 2, len(fil_phase)) / 1000
 
     fig1, ax1 = plt.subplots(1, 1, figsize=(6, 3), tight_layout=True)
@@ -122,20 +140,36 @@ def main():
     data_stft = librosa.stft(data)
     spectrogram, phase = librosa.magphase(data_stft)
     spectrogram_db = librosa.amplitude_to_db(spectrogram)
-    librosa.display.specshow(
-        spectrogram_db, sr=sr, ax=ax3[0], x_axis="time", y_axis="log"
+    im1 = librosa.display.specshow(
+        spectrogram_db, sr=sr, ax=ax3[0], x_axis="time", y_axis="log", cmap="plasma"
     )
 
     f_data_stft = librosa.stft(filtered_data)
     f_spectrogram, f_phase = librosa.magphase(f_data_stft)
     f_spectrogram_db = librosa.amplitude_to_db(f_spectrogram)
-    librosa.display.specshow(
-        f_spectrogram_db, sr=sr, ax=ax3[1], x_axis="time", y_axis="log"
+    im2 = librosa.display.specshow(
+        f_spectrogram_db, sr=sr, ax=ax3[1], x_axis="time", y_axis="log", cmap="plasma"
     )
 
-    ax3[0].set(title="Original Spectrogram", xlabel="Time [s]", ylabel="Frequency")
-    ax3[1].set(title="Filtered spectrogram", xlabel="Time [s]", ylabel=None)
+    ax3[0].set(
+        title="Original Spectrogram",
+        xlabel="Time [s]",
+        ylabel="Frequency",
+        xticks=(np.arange(0, time[-1], 1)),
+    )
+    ax3[1].set(
+        title="Filtered spectrogram",
+        xlabel="Time [s]",
+        ylabel=None,
+        xticks=(np.arange(0, time[-1], 1)),
+    )
+    fig3.colorbar(im1, ax=ax3[0], format="%+2.f dB")
+    fig3.colorbar(im2, ax=ax3[1], format="%+2.f dB")
     fig3.savefig("spectrogram_comparison.png")
+
+    data_istft = librosa.istft(f_data_stft)
+
+    sf.write("re-sample.wav", data_istft, sr)
 
     plt.show()
 
