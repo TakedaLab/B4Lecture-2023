@@ -16,15 +16,15 @@ def convolution(x, h):
     return y
 
 
-def LPF_window(length, cutoff, size, samplerate):  # length must be odd number
+def LPF_window(length, cutoff, size, samplerate):
     """
     Create a filter and Returns FIR impulse respoonse.
 
     Args:
-        length (int):   Order of the filter
-        cutoff (float): Cutoff frequency of the filter
-        size (int):     Size of filter
-        samplerate(int):samplerate of filtered signal
+        length (int):   Order of the filter. it must be odd number.
+        cutoff (float): Cutoff frequency of the filter.
+        size (int):     Size of filter.
+        samplerate(int):samplerate of filtered signal.
 
     Returns:
         ndarray[int]:   Impulse response of the FIR filter
@@ -45,14 +45,14 @@ def LPF_window(length, cutoff, size, samplerate):  # length must be odd number
     im_response[nyq_sample - N : nyq_sample + N + 1] = windowed
     im_response = np.fft.fftshift(im_response)
     F_filter = np.fft.fft(im_response)
+    h = np.roll(im_response, N)  # FIR filter's impulse response
+    filter = np.fft.fft(h)
 
     # Show Filter Properties
     plt.rcParams["font.family"] = "Times New Roman"
     plt.rcParams["font.size"] = 12
     plt.plot(window)
     plt.show()
-    h = np.roll(im_response, N)  # FIR filter's impulse response
-    filter = np.fft.fft(h)
     plt.subplot(211)
     plt.title("FIR properties")
     plt.plot(freq, 20 * np.log(np.abs(filter)))
