@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 def sort_rows_and_corresponding(matrix: list, row_index: int) -> list:
-    """_summary_
+    """ある行をソートしたら対応する列も一緒にソートする関数
 
     Args:
         matrix (list): ソートする行列
@@ -14,7 +14,9 @@ def sort_rows_and_corresponding(matrix: list, row_index: int) -> list:
     Returns:
         list: ソート後の行列
     """
+    # ある行をソートした時の列番号の順番を記録
     sorted_indices = sorted(range(len(matrix[row_index])), key=lambda x: matrix[row_index][x])
+    # 列番号の順番をもとに、他の行も並び替える
     sorted_matrix = [[matrix[i][j] for j in sorted_indices] for i in range(len(matrix))]
     return sorted_matrix
 
@@ -43,7 +45,7 @@ def plot_regression_curve(x: list, y: list, degree: int) -> [list, list]:
     return y_pred, weights
 
 def build_equation(weights: list) -> str:
-    """_summary_
+    """weightから回帰曲線の文字列を返す関数
 
     Args:
         weights (list): 回帰曲線の係数

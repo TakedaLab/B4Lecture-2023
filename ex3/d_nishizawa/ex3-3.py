@@ -6,8 +6,8 @@ from scipy.interpolate import griddata
 from pathlib import Path
 
 def sort_rows_and_corresponding(matrix: list, row_index: int) -> list:
-    """_summary_
-
+    """ある行をソートしたら対応する列も一緒にソートする関数
+    
     Args:
         matrix (list): ソートする行列
         row_index (int): ソートの基準となる行列の行番号
@@ -15,7 +15,9 @@ def sort_rows_and_corresponding(matrix: list, row_index: int) -> list:
     Returns:
         list: ソート後の行列
     """
+    # ある行をソートした時の列番号の順番を記録
     sorted_indices = sorted(range(len(matrix[row_index])), key=lambda x: matrix[row_index][x])
+    # 列番号の順番をもとに、他の行も並び替える
     sorted_matrix = [[matrix[i][j] for j in sorted_indices] for i in range(len(matrix))]
     return sorted_matrix
 
