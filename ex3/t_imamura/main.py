@@ -1,4 +1,4 @@
-"""ex3 least squares method"""
+"""ex3 least squares method."""
 
 import copy
 
