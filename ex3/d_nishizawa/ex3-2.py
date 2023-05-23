@@ -52,14 +52,18 @@ def build_equation(weights: list) -> str:
         str: 回帰曲線の式
     """
     equation = "y = "
+    # 回帰曲線の最高次数
     num_features = len(weights) - 1
 
     for i, w in reversed(list(enumerate(weights))):
-        if w != 0:
+        if w != 0:# 値が0でなければ
+            # 最高次数でないかつ係数が0より大きいなら係数の前に"+"を追加
             if i != num_features and w > 0:
                 equation += " + "
+                # 定数項ならxをつけずに出力
             if i == 0:
                 equation += f"{w:.2f}"
+                #xの１乗ならxに次数をつけずに出力
             elif i == 1:
                 equation += f"{w:.2f} * x"
             else:
