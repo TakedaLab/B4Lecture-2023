@@ -186,7 +186,4 @@ def k_means(data: np.ndarray, g_num: int,
 
 
 if __name__ == "__main__":
-    a = np.array([[1, 2, 3, 4, 5], [3, 4, 5, 6, 7]])
-    g_num = 2
-    label = np.array([0, 0, 1, 1, 0])
-    print(gen_cen(a, label, g_num))
+    pass
