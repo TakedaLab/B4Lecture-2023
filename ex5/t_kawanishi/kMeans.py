@@ -42,68 +42,6 @@ def init_r(data: np.ndarray, g_num: int) -> np.ndarray:
         )
     return centroid
 
-
-def group_c(data: np.ndarray, centroid: np.ndarray) -> np.ndarray:
-    """compute the nearest centroid.
-
-    Args:
-        data (np.ndarray): dataset
-        centroid (np.ndarray): centroid
-
-    Returns:
-        np.ndarray: clustered outcome and distance to the closet centroid
-    """
-    # centroid shape is (g_num, dim)
-
-    # create label to clustering
-    label = np.zeros(len(data[0]))
-    disToCen = np.zeros(len(data[0]))
-    first_time = True
-
-    # compute distance
-    for i in range(len(centroid)):
-        dis = data.T - centroid[i]
-        dis = np.sum(dis * dis, axis=1)
-
-        # select the closet centroid
-        if first_time:
-            disToCen = dis
-            first_time = False
-        else:
-            disToCen = np.minimum(disToCen, dis)
-            label[disToCen == dis] = i
-
-    return label, disToCen
-
-
-def gen_cen(data: np.ndarray, label: np.ndarray, g_num: int) -> np.ndarray:
-    """update centroid.
-
-    Args:
-        data (np.ndarray): dataset
-        label (np.ndarray): cluster label
-        g_num (int): the number of group
-
-    Returns:
-        np.ndarray: updated centroid
-    """
-    # new centroid matrix
-    dim = len(data)
-    centroid = np.zeros((g_num, dim))
-    for i in range(g_num):
-        # number of members in specific group
-        num = np.sum(label == i)
-
-        # zeros all members not in specific group
-        Gdata = np.array(data)
-        Gdata[:, label != i] = 0
-
-        # sum all axis
-        centroid[i] = np.sum(Gdata, axis=1) / num
-
-    return centroid
-
-
 def init_rp(data: np.ndarray, g_num: int) -> np.ndarray:
     """Random generate first centroid with k-means++.
 
@@ -151,6 +89,64 @@ def init_rp(data: np.ndarray, g_num: int) -> np.ndarray:
 
     return centroid
 
+def group_c(data: np.ndarray, centroid: np.ndarray) -> np.ndarray:
+    """compute the nearest centroid.
+
+    Args:
+        data (np.ndarray): dataset
+        centroid (np.ndarray): centroid
+
+    Returns:
+        np.ndarray: clustered outcome and distance to the closet centroid
+    """
+    # centroid shape is (g_num, dim)
+
+    # create label to clustering
+    label = np.zeros(len(data[0]))
+    disToCen = np.zeros(len(data[0]))
+    first_time = True
+
+    # compute distance
+    for i in range(len(centroid)):
+        dis = data.T - centroid[i]
+        dis = np.sum(dis * dis, axis=1)
+
+        # select the closet centroid
+        if first_time:
+            disToCen = dis
+            first_time = False
+        else:
+            disToCen = np.minimum(disToCen, dis)
+            label[disToCen == dis] = i
+
+    return label, disToCen
+
+def gen_cen(data: np.ndarray, label: np.ndarray, g_num: int) -> np.ndarray:
+    """update centroid.
+
+    Args:
+        data (np.ndarray): dataset
+        label (np.ndarray): cluster label
+        g_num (int): the number of group
+
+    Returns:
+        np.ndarray: updated centroid
+    """
+    # new centroid matrix
+    dim = len(data)
+    centroid = np.zeros((g_num, dim))
+    for i in range(g_num):
+        # number of members in specific group
+        num = np.sum(label == i)
+
+        # zeros all members not in specific group
+        Gdata = np.array(data)
+        Gdata[:, label != i] = 0
+
+        # sum all axis
+        centroid[i] = np.sum(Gdata, axis=1) / num
+
+    return centroid
 
 def k_means(data: np.ndarray, g_num: int,
             iter=10000, plus_algo=False) -> np.ndarray:

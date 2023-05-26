@@ -30,6 +30,8 @@ if __name__ == "__main__":
     # k-means
     label, centroid = km.k_means(data, args.group, plus_algo=args.plus)
 
+    km.init_lbg(data,3)
+
     # create save image name
     i_name = re.sub(r".+\\", "", args.path)
     i_name = re.sub(r"\..+", "", i_name)
