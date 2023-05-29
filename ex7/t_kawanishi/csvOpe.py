@@ -1,8 +1,21 @@
 """csv operation."""
 import csv
+import re
 
 import numpy as np
 
+def get_fname(path:str)->str:
+    """Get file name
+
+    Args:
+        path (str): path to the dataset
+
+    Returns:
+        str: dataset file name
+    """
+    i_name = re.sub(r".+\\", "", path)
+    i_name = re.sub(r"\..+", "", i_name)
+    return i_name
 
 def read_csv(path: str) -> np.ndarray:
     """read out csv to matrix
