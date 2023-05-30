@@ -104,10 +104,8 @@ def Quefrency(
     """
     low_quefrency = []
     high_quefrancy = []
-    N = len(sample_data)  # データ長
     lift = int(lift_ms * F_size)  # ケフレンシーでのリフト境界
     dist_of_Frame = F_size - F_size * OverRap  # フレーム間の距離
-    win = scipy.signal.hamming(F_size)  # 窓関数としてハミング窓を使用(他にハニング窓、ブラックマン窓などが存在)
     fft_start = 0  # フレームの開始位置
     fft, counter = stft(sample_data, F_size, OverRap)  # fftを実行
     for fft_per in fft:
