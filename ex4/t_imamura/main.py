@@ -100,7 +100,10 @@ def Quefrency(
         lift_ms (float, optional): The lift time. Defaults to 0.018.
 
     Returns:
-        tuple[np.ndarray, np.ndarray, int]: Low quefrency ingredient, High quefrency ingredient, The number of frame.
+        tuple[np.ndarray, np.ndarray, int]:
+        Low quefrency ingredient,
+        High quefrency ingredient,
+        The number of frame.
     """
     low_quefrency = []
     high_quefrancy = []
