@@ -118,10 +118,7 @@ def Quefrency(
         low_quef_per[lift : F_size - lift] = 0
         high_quef_per = copy.deepcopy(quefrency)  # 高周波成分
         high_quef_per -= low_quef_per
-        # quefrency_ff.append((sample_rate//2) / np.argmax(high_quef_per[:F_size//2]))
-        # print(np.argmax(high_quef[:F_size//2]))
         fft_start += dist_of_Frame
-        # counter += 1
         low_quefrency.append(low_quef_per)
         high_quefrancy.append(high_quef_per)
 
