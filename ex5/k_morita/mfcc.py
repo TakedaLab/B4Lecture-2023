@@ -5,6 +5,7 @@ from scipy.fftpack import dct
 
 
 def seg(data, sr, win_len, overlap):
+    """Calculate segmented data with overlap."""
     hop = win_len - overlap
     nsteps = (len(data) - win_len) // hop
     total_frame = nsteps * hop + win_len
@@ -14,6 +15,7 @@ def seg(data, sr, win_len, overlap):
 
 
 def mel_filter_bank(sr, n_fft, n_channels):
+    """Generate mel-filter-bank."""
     fmax = sr // 2
     melmax = hz2mel(fmax)
     nmax = n_fft // 2
@@ -39,6 +41,7 @@ def mel_filter_bank(sr, n_fft, n_channels):
 
 
 def delta(data):
+    """Calculate delta."""
     delt = np.zeros_like(data)
     for i in range(1, data.shape[0]):
         delt[i] = data[i] - data[i-1]
@@ -47,29 +50,28 @@ def delta(data):
 
 
 def hz2mel(f):
+    """Convert hz to mel."""
     return 2595 * np.log(f / 700. + 1.)
 
 
 def mel2hz(m):
+    """Convert mel to hz."""
     return 700 * (np.exp(m / 2595.) - 1.)
 
 
 def mfcc_(data, sr, n_mel=20, n_mfcc=13):
+    """Calculate MFCC."""
     win_len = n_fft = 1024
     overlap = 512
     n_channels = 20
     n_ceps = 12
 
     seged_data, total_frame, total_time = seg(data, sr, win_len, overlap)
-
     windowed = seged_data * np.hamming(win_len)
     spec = np.abs(np.fft.fft(windowed, n_fft))[:, n_fft//2:]
-
     mel_filter = mel_filter_bank(sr, n_fft, n_channels)
     mel_spec = np.dot(spec, mel_filter.T)
-
     ceps = dct(20 * np.log10(mel_spec), type=2, axis=1, norm='ortho')
-
     return ceps[:, :n_ceps][:, ::-1], spec, total_time
 
 

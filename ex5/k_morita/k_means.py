@@ -5,11 +5,13 @@ import sys
 
 
 def loadcsv(filename):
+    """Load data file."""
     data = np.loadtxt(filename, delimiter=",", skiprows=1)
     return data
 
 
 def generate_rondom_2d(k, data):
+    """Generate random 2d vectors."""
     rng = np.random.default_rng()
     x, y = data.T
     rand_x = rng.uniform(min(x), max(x), k)
@@ -19,6 +21,7 @@ def generate_rondom_2d(k, data):
 
 
 def generate_random_3d(k, data):
+    """Generate random 3d vectors."""
     rng = np.random.default_rng()
     x, y, z = data.T
     rand_x = rng.uniform(min(x), max(x), k)
@@ -29,6 +32,7 @@ def generate_random_3d(k, data):
 
 
 def update_cluster(cluster, centroids, data):
+    """Update cluster function."""
     new_cluster = np.zeros_like(cluster)
     for i in range(len(data)):
         d = data[i]
@@ -38,13 +42,10 @@ def update_cluster(cluster, centroids, data):
 
 
 def update_centroids(centroids, cluster, data):
+    """Update centroids function."""
     new_centroids = np.zeros_like(centroids)
     for i in range(len(centroids)):
         target_data = data[cluster == i]
-        # x, y = target_data.T
-        # cent_x = np.mean(x)
-        # cent_y = np.mean(y)
-        # new_centroids[i] = np.array([cent_x, cent_y])
         new_centroids[i] = np.array(
             [np.mean(target_data[:, i]) for i in range(target_data.shape[1])]
         )
@@ -52,14 +53,13 @@ def update_centroids(centroids, cluster, data):
 
 
 def k_means_2d(k, data):
+    """K-means 2-dimension."""
     centroids = generate_rondom_2d(k, data)
     initial_centroids = centroids
-
     prev_cluster = np.zeros(len(data))
     cluster = np.zeros(len(data))
     while True:
         prev_cluster, cluster = update_cluster(cluster, centroids, data)
-
         if np.array_equal(prev_cluster, cluster):
             break
         else:
@@ -70,6 +70,7 @@ def k_means_2d(k, data):
 
 
 def k_means_3d(k, data):
+    """K-means 3-dimension."""
     centroids = generate_random_3d(k, data)
     initial_centroids = centroids
     prev_cluster = np.zeros(len(data))
@@ -87,6 +88,7 @@ def k_means_3d(k, data):
 
 
 def main2d():
+    """K-means(2d) main function."""
     file = sys.argv[1]
     k = int(sys.argv[2])
     data = loadcsv(file)
@@ -116,6 +118,7 @@ def main2d():
 
 
 def main3d():
+    """K-means(3d) main function."""
     file = "../data3.csv"
     k = int(sys.argv[1])
     data = loadcsv(file)
