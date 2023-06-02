@@ -1,6 +1,7 @@
 import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
+from scipy.fftpack import dct
 
 
 def seg(data, sr, win_len, overlap):
@@ -12,101 +13,117 @@ def seg(data, sr, win_len, overlap):
     return np.array(seged), total_frame, total_time
 
 
-def mel_frequency_array(n_fft, n_mel, sr):
-    f0 = 700
-    m0 = 1127
-    high_limit = sr
-    high_limit_mel = m0 * np.log10(high_limit / f0 + 1)
-    mel_array = np.linspace(0, high_limit_mel, n_mel + 2)
-    freq_array = f0 * (10 ** (mel_array / m0) - 1)
-    mel_freq_array = ((n_fft+1) * freq_array) // sr
-    return mel_freq_array
+def mel_filter_bank(sr, n_fft, n_channels):
+    fmax = sr // 2
+    melmax = hz2mel(fmax)
+    nmax = n_fft // 2
+    df = sr / n_fft
+    dmel = melmax / (n_channels + 1)
+    melcenters = np.arange(1, n_channels+1) * dmel
+    fcenters = mel2hz(melcenters)
+    indexcenter = np.round(fcenters / df)
+    indexstart = np.hstack(([0], indexcenter[0:n_channels-1]))
+    indexstop = np.hstack((indexcenter[1:n_channels], [nmax]))
+    filterbank = np.zeros((n_channels, nmax))
+
+    for c in range(0, n_channels):
+        increment = 1. / (indexcenter[c] - indexstart[c])
+        for i in range(int(indexstart[c]), int(indexcenter[c])):
+            filterbank[c, i] = (i - indexstart[c]) * increment
+
+        decrement = 1. / (indexstop[c] - indexcenter[c])
+        for i in range(int(indexcenter[c]), int(indexstop[c])):
+            filterbank[c, i] = 1. - ((i - indexcenter[c]) * decrement)
+
+    return filterbank
 
 
-def mel_filter_bank(n_fft, n_mel, sr):
-    h = mel_frequency_array(n_fft, n_mel, sr)
-    mel_fil_bank = np.zeros((n_mel, n_fft // 2))
-    for m in range(1, n_mel + 1):
-        left = int(h[m - 1])
-        mid = int(h[m])
-        right = int(h[m + 1])
-        for k in range(left, mid):
-            if k >= mel_fil_bank.shape[1]-1:
-                continue
-            mel_fil_bank[m - 1, k] = (k - left) / (mid - left)
-        for k in range(mid, right):
-            if k >= mel_fil_bank.shape[1]-1:
-                continue
-            mel_fil_bank[m - 1, k] = (right - k) / (right - mid)
-    return mel_fil_bank
+def delta(data):
+    delt = np.zeros_like(data)
+    for i in range(1, data.shape[0]):
+        delt[i] = data[i] - data[i-1]
+    delt[0] = delt[1]
+    return delt
 
 
-def dct(n_fil, n_mfcc):
-    n = np.arange(n_fil)
-    dct_filter = np.zeros((n_mfcc, n_fil))
-    for i in range(n_mfcc):
-        dct_filter[i, :] = np.cos(i * n * np.pi / n_fil)
-    return dct_filter
+def hz2mel(f):
+    return 2595 * np.log(f / 700. + 1.)
 
 
-def mfcc(data, sr, n_mel=20, n_mfcc=13):
-    win_len = 1024
+def mel2hz(m):
+    return 700 * (np.exp(m / 2595.) - 1.)
+
+
+def mfcc_(data, sr, n_mel=20, n_mfcc=13):
+    win_len = n_fft = 1024
     overlap = 512
+    n_channels = 20
+    n_ceps = 12
 
-    # step 1
     seged_data, total_frame, total_time = seg(data, sr, win_len, overlap)
 
-    # step 2
-    seged_data *= np.hamming(win_len)
-    fft = np.fft.fft(seged_data)
-    spec = np.abs(fft)
+    windowed = seged_data * np.hamming(win_len)
+    spec = np.abs(np.fft.fft(windowed, n_fft))[:, n_fft//2:]
 
-    # step 3
-    log_spec = 20 * np.log10(spec)
-    log_spec = log_spec[:, log_spec.shape[1] // 2:]
+    mel_filter = mel_filter_bank(sr, n_fft, n_channels)
+    mel_spec = np.dot(spec, mel_filter.T)
 
-    # step 4
-    n_fft = fft.shape[1]
-    mel_filter = mel_filter_bank(n_fft, n_mel, sr)
-    mel_spec = np.dot(log_spec, mel_filter.T)
+    ceps = dct(20 * np.log10(mel_spec), type=2, axis=1, norm='ortho')
 
-    # step 5
-    mfcc_filter = dct(n_mel, n_mfcc)
-    mfcc = np.dot(mel_spec, mfcc_filter.T)
-    log_mfcc = 20 * np.log10(np.abs(mfcc) + np.finfo(float).eps)
-
-    # draw
-    fig = plt.figure()
-
-    ax = fig.add_subplot(211)
-    ax.set_title("Spectrogram")
-    im = ax.imshow(
-        log_spec.T,
-        cmap=plt.cm.jet,
-        aspect="auto",
-        extent=[0, total_time, 0, sr // 2])
-    ax.set_xlabel("Time [s]")
-    ax.set_ylabel("Frequency [Hz]")
-    fig.colorbar(im, ax=ax)
-
-    ax = fig.add_subplot(212)
-    ax.set_title("MFCC")
-    im = ax.imshow(
-        -1 * log_mfcc.T,
-        cmap=plt.cm.jet,
-        aspect="auto",
-        vmax=0,
-        vmin=-80,
-        extent=[0, total_time, 0, sr // 2])
-    ax.set_xlabel("Time [s]")
-    ax.set_ylabel("Frequency [Hz]")
-    fig.colorbar(im, ax=ax)
-
-    plt.tight_layout()
-    plt.show()
+    return ceps[:, :n_ceps][:, ::-1], spec, total_time
 
 
 if __name__ == "__main__":
     file = "audio.wav"
     data, sr = sf.read(file)
-    mfcc(data, sr)
+
+    mfcc, spec, total_time = mfcc_(data, sr)
+    delt = delta(mfcc)
+    deltdelt = delta(delt)
+
+    # draw
+    fig = plt.figure(figsize=(8, 9))
+
+    ax = fig.add_subplot(411)
+    ax.set_title("Spectrogram")
+    im = ax.imshow(
+        (20 * np.log10(spec)).T,
+        cmap=plt.cm.jet,
+        aspect="auto",
+        extent=[0, total_time, 0, sr // 2])
+    ax.set_ylabel("f [Hz]")
+    fig.colorbar(im, ax=ax)
+
+    ax = fig.add_subplot(412)
+    ax.set_title("MFCC")
+    im = ax.imshow(
+        mfcc.T,
+        cmap=plt.cm.jet,
+        aspect="auto",
+        extent=[0, total_time, 0, sr // 2])
+    ax.set_ylabel("MFCC")
+    fig.colorbar(im, ax=ax)
+
+    ax = fig.add_subplot(413)
+    ax.set_title("$\Delta$MFCC")
+    im = ax.imshow(
+        delt.T,
+        cmap=plt.cm.jet,
+        aspect="auto",
+        extent=[0, total_time, 0, sr // 2])
+    ax.set_ylabel("$\Delta$MFCC")
+    fig.colorbar(im, ax=ax)
+
+    ax = fig.add_subplot(414)
+    ax.set_title("$\Delta\Delta$MFCC")
+    im = ax.imshow(
+        deltdelt.T,
+        cmap=plt.cm.jet,
+        aspect="auto",
+        extent=[0, total_time, 0, sr // 2])
+    ax.set_xlabel("Time [s]")
+    ax.set_ylabel("$\Delta\Delta$MFCC")
+    fig.colorbar(im, ax=ax)
+
+    plt.tight_layout()
+    plt.show()
