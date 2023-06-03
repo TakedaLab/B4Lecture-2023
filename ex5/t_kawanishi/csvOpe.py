@@ -14,7 +14,6 @@ def plot(data: np.ndarray, centroid: np.ndarray, label: np.ndarray, g_num):
         label (np.ndarray): dataset label
         g_num (_type_): number of groups
     """
-
     # create graph
     plt.figure()
     colorlist = ["r", "g", "b", "c", "m", "y", "w"]
