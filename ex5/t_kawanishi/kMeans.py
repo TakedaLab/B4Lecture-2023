@@ -21,26 +21,22 @@ def init_r(data: np.ndarray, g_num: int) -> np.ndarray:
     if dim == 2:
         centroid = np.concatenate(
             [
-                np.random.uniform(np.min(data[0]),
-                                  np.max(data[0]), (g_num, 1)),
-                np.random.uniform(np.min(data[1]),
-                                  np.max(data[1]), (g_num, 1)),
+                np.random.uniform(np.min(data[0]), np.max(data[0]), (g_num, 1)),
+                np.random.uniform(np.min(data[1]), np.max(data[1]), (g_num, 1)),
             ],
             axis=1,
         )
     elif dim == 3:
         centroid = np.concatenate(
             [
-                np.random.uniform(np.min(data[0]),
-                                  np.max(data[0]), (g_num, 1)),
-                np.random.uniform(np.min(data[1]),
-                                  np.max(data[1]), (g_num, 1)),
-                np.random.uniform(np.min(data[2]),
-                                  np.max(data[2]), (g_num, 1)),
+                np.random.uniform(np.min(data[0]), np.max(data[0]), (g_num, 1)),
+                np.random.uniform(np.min(data[1]), np.max(data[1]), (g_num, 1)),
+                np.random.uniform(np.min(data[2]), np.max(data[2]), (g_num, 1)),
             ],
             axis=1,
         )
     return centroid
+
 
 def init_rp(data: np.ndarray, g_num: int) -> np.ndarray:
     """Random generate first centroid with k-means++.
@@ -67,8 +63,7 @@ def init_rp(data: np.ndarray, g_num: int) -> np.ndarray:
             np.random.choice(np.arange(data.shape[1]), p=p)
             index = np.random.choice(np.arange(data.shape[1]), p=p)
             centroid = np.concatenate(
-                (centroid, np.array([data[0][index],
-                                     data[1][index]]).reshape(1, 2))
+                (centroid, np.array([data[0][index], data[1][index]]).reshape(1, 2))
             )
 
     elif dim == 3:
@@ -82,12 +77,14 @@ def init_rp(data: np.ndarray, g_num: int) -> np.ndarray:
             centroid = np.concatenate(
                 (
                     centroid,
-                    np.array([data[0][index], data[1][index],
-                              data[2][index]]).reshape(1, 3),
+                    np.array([data[0][index], data[1][index], data[2][index]]).reshape(
+                        1, 3
+                    ),
                 )
             )
 
     return centroid
+
 
 def group_c(data: np.ndarray, centroid: np.ndarray) -> np.ndarray:
     """compute the nearest centroid.
@@ -121,6 +118,7 @@ def group_c(data: np.ndarray, centroid: np.ndarray) -> np.ndarray:
 
     return label, disToCen
 
+
 def gen_cen(data: np.ndarray, label: np.ndarray, g_num: int) -> np.ndarray:
     """update centroid.
 
@@ -148,8 +146,8 @@ def gen_cen(data: np.ndarray, label: np.ndarray, g_num: int) -> np.ndarray:
 
     return centroid
 
-def k_means(data: np.ndarray, g_num: int,
-            iter=10000, plus_algo=False) -> np.ndarray:
+
+def k_means(data: np.ndarray, g_num: int, iter=10000, plus_algo=False) -> np.ndarray:
     """To clustering data with k_means.
 
     Args:

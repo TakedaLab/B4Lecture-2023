@@ -31,8 +31,7 @@ def plot(data: np.ndarray, centroid: np.ndarray, label: np.ndarray, g_num):
                 color=colorlist[i],
             )
         plt.plot(
-            centroid[0], centroid[1], "p",
-            label="centroid", color="k", markersize=10
+            centroid[0], centroid[1], "p", label="centroid", color="k", markersize=10
         )
         plt.xlabel("$X_{1}$")
         plt.ylabel("$X_{2}$")
@@ -66,8 +65,7 @@ def plot(data: np.ndarray, centroid: np.ndarray, label: np.ndarray, g_num):
         ax.legend()
 
     else:
-        raise ValueError(
-            "data dimension should in 2 or 3 but " + str(len(data)))
+        raise ValueError("data dimension should in 2 or 3 but " + str(len(data)))
 
 
 def read_csv(path: str) -> np.ndarray:

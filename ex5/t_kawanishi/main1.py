@@ -13,12 +13,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("path", help="The path of dataset.")
     parser.add_argument(
-        "-g", "--group", default=2, type=int,
-        help="The number of groups to classify"
+        "-g", "--group", default=2, type=int, help="The number of groups to classify"
     )
     parser.add_argument(
-        "-p", "--plus", action="store_true",
-        help="whether k-means or k-means++"
+        "-p", "--plus", action="store_true", help="whether k-means or k-means++"
     )
 
     # read out parser
@@ -30,7 +28,7 @@ if __name__ == "__main__":
     # k-means
     label, centroid = km.k_means(data, args.group, plus_algo=args.plus)
 
-    km.init_lbg(data,3)
+    km.init_lbg(data, 3)
 
     # create save image name
     i_name = re.sub(r".+\\", "", args.path)

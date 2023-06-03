@@ -17,12 +17,10 @@ parser.add_argument(
     type=int,
 )
 parser.add_argument(
-    "-r", "--overlap_r", help="overlap rate between 0 to 1",
-    default=0.5, type=float
+    "-r", "--overlap_r", help="overlap rate between 0 to 1", default=0.5, type=float
 )
 parser.add_argument(
-    "-l", "--y_limit", help="limit of spectrogram's frequency",
-    default=25000, type=int
+    "-l", "--y_limit", help="limit of spectrogram's frequency", default=25000, type=int
 )
 
 
@@ -58,7 +56,7 @@ def stft(y: np.ndarray, overlap: float, Fs: int) -> np.ndarray:
 
     F = []
     for i in range(int((ynum - overlap_length) / overlap_length)):
-        tmp = y[i * overlap_length: i * overlap_length + Fs]
+        tmp = y[i * overlap_length : i * overlap_length + Fs]
         # multiplied by window function
         tmp = tmp * window
         # Fast Fourier Transform (FFT)
@@ -89,16 +87,15 @@ def istft(data: np.ndarray, overlap: float, length: int) -> np.ndarray:
     win = np.hamming(Fs)  # create windows
     # using ifft to inverse segment
     for i in range(len(data)):
-        origin_sound[seg_s: seg_s + size] += (
-            np.real(np.fft.ifft(data[i])) / win
-            )[0:size]
+        origin_sound[seg_s : seg_s + size] += (np.real(np.fft.ifft(data[i])) / win)[
+            0:size
+        ]
         seg_s += int(Fs * (1 - overlap))
     return origin_sound
 
 
 def show_spectrogram(
-    data: np.ndarray, overlap_r=0.5, Fs=512,
-    sample_rate=48000, y_lim=20000, s_name=""
+    data: np.ndarray, overlap_r=0.5, Fs=512, sample_rate=48000, y_lim=20000, s_name=""
 ) -> None:
     """To show spectrogram and save.
 
@@ -116,8 +113,7 @@ def show_spectrogram(
 
     # compute time
     spec_t = (
-        np.arange(start=0, stop=frame_l,
-                  step=int(Fs * (1 - overlap_r))) / sample_rate
+        np.arange(start=0, stop=frame_l, step=int(Fs * (1 - overlap_r))) / sample_rate
     )
 
     # plot spectrogram
@@ -179,8 +175,7 @@ if __name__ == "__main__":
     # compute time
     x_t = np.arange(0, len(data)) / sample_rate
     spec_t = (
-        np.arange(start=0, stop=frame_l,
-                  step=int(Fs * (1 - overlap_r))) / sample_rate
+        np.arange(start=0, stop=frame_l, step=int(Fs * (1 - overlap_r))) / sample_rate
     )
 
     # create graph's group
@@ -207,7 +202,7 @@ if __name__ == "__main__":
     cax = fig.add_axes([0.92, 0.395, 0.02, 0.2])  # x, y, width, height
     spec_d = sound_spec.pcolormesh(
         spec_t,
-        freq[1: int(Fs / 2)],
+        freq[1 : int(Fs / 2)],
         20 * np.log(np.abs(frame_group)),
         cmap="plasma",
         shading="nearest",

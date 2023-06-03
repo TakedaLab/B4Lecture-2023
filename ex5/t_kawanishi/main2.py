@@ -12,9 +12,7 @@ import ex1Function as F
 import MFCC
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="This is a program to adapt MFCC."
-        )
+    parser = argparse.ArgumentParser(description="This is a program to adapt MFCC.")
     parser.add_argument("path", help="sound file path")
     parser.add_argument("-f", "--f_size", default=512, help="frame size")
 
@@ -98,8 +96,7 @@ if __name__ == "__main__":
     d_mfcc = MFCC.delta_mfcc(mfcc, k=2)
 
     img = ax[2].imshow(
-        np.flipud(d_mfcc[:n_mfcc]), aspect="auto",
-        extent=extent, cmap="rainbow"
+        np.flipud(d_mfcc[:n_mfcc]), aspect="auto", extent=extent, cmap="rainbow"
     )
     ax[2].set(
         title="ΔMFCC sequence",
@@ -112,8 +109,7 @@ if __name__ == "__main__":
     # dd-mfcc
     dd_mfcc = MFCC.delta_mfcc(d_mfcc, k=2)
     img = ax[3].imshow(
-        np.flipud(dd_mfcc[:n_mfcc]), aspect="auto",
-        extent=extent, cmap="rainbow"
+        np.flipud(dd_mfcc[:n_mfcc]), aspect="auto", extent=extent, cmap="rainbow"
     )
     ax[3].set(
         title="ΔΔMFCC sequence",

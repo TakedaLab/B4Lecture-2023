@@ -72,7 +72,7 @@ def melFilterBank(fs: int, N: int, channels: int) -> np.ndarray:
     # calculate center fs index
     i_center = np.round(f_centers / df)
     # calculate start fs index
-    i_start = np.hstack(([0], i_center[0: channels - 1]))
+    i_start = np.hstack(([0], i_center[0 : channels - 1]))
     # calculate end fs index
     i_end = np.hstack((i_center[1:channels], [nmax]))
 
@@ -131,7 +131,7 @@ def delta_mfcc(mfcc: np.ndarray, k=2) -> np.ndarray:
     k_sq = np.sum(m**2)
     d_mfcc = np.zeros_like(mfcc)
     for i in range(mfcc.shape[0]):
-        d_mfcc[i] = np.dot(m, mfcc_pad[i: i + k * 2 + 1])
+        d_mfcc[i] = np.dot(m, mfcc_pad[i : i + k * 2 + 1])
     return d_mfcc / k_sq
 
 
