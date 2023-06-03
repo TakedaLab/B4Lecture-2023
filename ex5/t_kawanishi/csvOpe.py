@@ -6,7 +6,7 @@ import numpy as np
 
 
 def plot(data: np.ndarray, centroid: np.ndarray, label: np.ndarray, g_num):
-    """To plot data
+    """To plot data.
 
     Args:
         data (np.ndarray): dataset for plot
@@ -69,7 +69,7 @@ def plot(data: np.ndarray, centroid: np.ndarray, label: np.ndarray, g_num):
 
 
 def read_csv(path: str) -> np.ndarray:
-    """read out csv to matrix
+    """Read out csv to matrix.
 
     Args:
         path (str): the csv file path

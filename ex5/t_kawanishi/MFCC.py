@@ -1,4 +1,4 @@
-"""Store the functions needed for MFCC"""
+"""Store the functions needed for MFCC."""
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack.realtransforms import dct
@@ -7,7 +7,7 @@ import ex1Function as F
 
 
 def hz2mel(f: np.ndarray, f0=700.0) -> np.ndarray:
-    """Hz to mel scale
+    """Hz to mel scale.
 
     Args:
         f (np.ndarray): Hz
@@ -21,7 +21,7 @@ def hz2mel(f: np.ndarray, f0=700.0) -> np.ndarray:
 
 
 def mel2hz(m: np.ndarray, f0=700.0) -> np.ndarray:
-    """mel scale to Hz
+    """Mel scale to Hz.
 
     Args:
         m (np.ndarray): mel scale
@@ -35,7 +35,7 @@ def mel2hz(m: np.ndarray, f0=700.0) -> np.ndarray:
 
 
 def cal_m0(f0: int) -> int:
-    """calculate m0
+    """Calculate m0.
 
     Args:
         f0 (int): f0
@@ -47,7 +47,7 @@ def cal_m0(f0: int) -> int:
 
 
 def melFilterBank(fs: int, N: int, channels: int) -> np.ndarray:
-    """_summary_
+    """Make filter bank.
 
     Args:
         fs (int): sample rate
@@ -94,7 +94,7 @@ def melFilterBank(fs: int, N: int, channels: int) -> np.ndarray:
 def calc_mfcc(
     data: np.ndarray, filterbank: np.ndarray, hop: float, shift_s: int
 ) -> np.ndarray:
-    """To calculate mfcc
+    """To calculate mfcc.
 
     Args:
         data (np.ndarray): data
@@ -117,7 +117,7 @@ def calc_mfcc(
 
 
 def delta_mfcc(mfcc: np.ndarray, k=2) -> np.ndarray:
-    """calculate delta from mfcc
+    """Calculate delta from mfcc.
 
     Args:
         mfcc (np.ndarray): Mel frequency cepstrum coefficient
@@ -136,7 +136,7 @@ def delta_mfcc(mfcc: np.ndarray, k=2) -> np.ndarray:
 
 
 def plot_filter(filterbank: np.ndarray, fs: int):
-    """To plot MFCC
+    """To plot MFCC.
 
     Args:
         filterbank (np.ndarray): mel filter bank

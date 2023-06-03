@@ -87,7 +87,7 @@ def init_rp(data: np.ndarray, g_num: int) -> np.ndarray:
 
 
 def group_c(data: np.ndarray, centroid: np.ndarray) -> np.ndarray:
-    """compute the nearest centroid.
+    """Compute the nearest centroid.
 
     Args:
         data (np.ndarray): dataset
@@ -120,7 +120,7 @@ def group_c(data: np.ndarray, centroid: np.ndarray) -> np.ndarray:
 
 
 def gen_cen(data: np.ndarray, label: np.ndarray, g_num: int) -> np.ndarray:
-    """update centroid.
+    """Update centroid.
 
     Args:
         data (np.ndarray): dataset

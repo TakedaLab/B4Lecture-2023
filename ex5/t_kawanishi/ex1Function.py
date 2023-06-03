@@ -38,7 +38,7 @@ def load_sound(sound_path: str) -> tuple[np.ndarray, int]:
 
 
 def stft(y: np.ndarray, overlap: float, Fs: int) -> np.ndarray:
-    """short-time fourier transform.
+    """Short-time fourier transform.
 
     Args:
         y (np.ndarray): sound's signal value
