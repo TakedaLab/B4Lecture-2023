@@ -49,7 +49,6 @@ def stft(y: np.ndarray, overlap: float, Fs: int) -> np.ndarray:
         np.ndarray:
             Complex-valued matrix of short-term Fourier transform coefficients.
     """
-
     overlap_length = int(Fs * overlap)
     ynum = y.shape[0]
     window = np.hamming(Fs)
