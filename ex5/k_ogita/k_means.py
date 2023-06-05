@@ -2,23 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """Classify the data using k-means method."""
-import collections
-import numpy as np
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.animation as animation
-import matplotlib.pyplot as plt
 import argparse
+import collections
 import csv
-import random
 import os
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 class KMeans:
     def __init__(self, cluster_n, dim=2):
         self.cluster_n = cluster_n
         self.labels = None
         self.centroids = np.zeros((cluster_n, dim))
-    
+
     def fit(self, data):
         N = data.shape[0]
         cluster_n = self.cluster_n
@@ -29,21 +28,32 @@ class KMeans:
         while not (self.labels == labels_prev).all():
             # 2. Calculate centroids
             for i in range(cluster_n):
-                indices = np.where(self.labels==i)
+                indices = np.where(self.labels == i)
                 x_i = data[indices, :]
                 self.centroids[i] = np.mean(x_i, axis=1)
             # 3. Cluster reclassification
             labels_prev = self.labels
             # Calculate the distance to each centroid and label the nearest claster
             for i in range(N):
-                self.labels[i] = np.argmin([np.linalg.norm(data[i, :] - self.centroids[j, :], ord=2) for j in range(cluster_n)])
+                self.labels[i] = np.argmin(
+                    [
+                        np.linalg.norm(data[i, :] - self.centroids[j, :], ord=2)
+                        for j in range(cluster_n)
+                    ]
+                )
 
     def predict(self, data):
         N = data.shape[0]
         labels = np.zeros(N)
         for i in range(N):
-            labels[i] = np.argmin([np.linalg.norm(data[i, :] - self.centroids[j, :], ord=2) for j in range(self.cluster_n)])
+            labels[i] = np.argmin(
+                [
+                    np.linalg.norm(data[i, :] - self.centroids[j, :], ord=2)
+                    for j in range(self.cluster_n)
+                ]
+            )
         return labels
+
 
 def main():
     """Classify the data using k-means method."""
@@ -53,7 +63,11 @@ def main():
         "-c", "--cluster_n", help="The number of cluster", type=int, required=True
     )
     parser.add_argument(
-        "-n", "--min_cluster_data_num", help="Minimum number of data in each cluster", type=int, default=5
+        "-n",
+        "--min_cluster_data_num",
+        help="Minimum number of data in each cluster",
+        type=int,
+        default=5,
     )
     parser.add_argument(
         "-save", "--save_fig", help="Whether to save figure or not", action="store_true"
@@ -86,11 +100,13 @@ def main():
 
     model = KMeans(cluster_n, dim)
     count_labels = np.zeros(data.shape[0])
-    while not (np.all(count_labels > min_cluster_data_num) and len(count_labels) == cluster_n):
+    while not (
+        np.all(count_labels > min_cluster_data_num) and len(count_labels) == cluster_n
+    ):
         model.fit(data)
         labels = model.labels
         count_labels = np.array(list(collections.Counter(labels).values()))
-    scatter_label_list = [f'cluster_{k:0=2}' for k in range(cluster_n)]
+    scatter_label_list = [f"cluster_{k:0=2}" for k in range(cluster_n)]
 
     fig = plt.figure(figsize=(15, 10))
 
@@ -98,14 +114,25 @@ def main():
     if dim == 2:
         ax = fig.add_subplot(111)
         for i in range(cluster_n):
-            indices = np.where(labels==i)[0]
-            ax.scatter(data[indices, 0], data[indices, 1], color=cmap((i+1)/cluster_n), label=scatter_label_list[i])
+            indices = np.where(labels == i)[0]
+            ax.scatter(
+                data[indices, 0],
+                data[indices, 1],
+                color=cmap((i + 1) / cluster_n),
+                label=scatter_label_list[i],
+            )
     # k-means clustering　for three-dimensional data
     elif dim == 3:
         ax = fig.add_subplot(111, projection="3d")
         for i in range(cluster_n):
-            indices = np.where(labels==i)[0]
-            ax.scatter3D(data[indices, 0], data[indices, 1], data[indices, 2], color=cmap((i+1)/cluster_n), label=scatter_label_list[i])
+            indices = np.where(labels == i)[0]
+            ax.scatter3D(
+                data[indices, 0],
+                data[indices, 1],
+                data[indices, 2],
+                color=cmap((i + 1) / cluster_n),
+                label=scatter_label_list[i],
+            )
         ax.set_zlabel("$z$")
 
     ax.set_xlabel("$x$")
@@ -115,6 +142,7 @@ def main():
     if args.save_fig:
         fig.savefig(f"{file_name}_{cluster_n}.png")
     plt.show()
+
 
 if __name__ == "__main__":
     main()
