@@ -85,13 +85,11 @@ def main():
     cmap = plt.get_cmap(cmap_keyword)
 
     model = KMeans(cluster_n, dim)
-    fit_flag = False
-    while not fit_flag:
+    count_labels = np.zeros(data.shape[0])
+    while not (np.all(count_labels > min_cluster_data_num) and len(count_labels) == cluster_n):
         model.fit(data)
         labels = model.labels
         count_labels = np.array(list(collections.Counter(labels).values()))
-        if np.all(count_labels > min_cluster_data_num) and len(count_labels) == cluster_n:
-            fit_flag = True
     scatter_label_list = [f'cluster_{k:0=2}' for k in range(cluster_n)]
 
     fig = plt.figure(figsize=(15, 10))
