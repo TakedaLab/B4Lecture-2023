@@ -227,15 +227,14 @@ def mel_filter_bank(data: np.ndarray, sample_rate: int, channel_num: int):
         if h_index == 0:  # 下限だけ例外処理
             for k in range(h[1] - h[0] * 2, h[0]):
                 # 下限のときの一つ前の周波数は0
-                mfl_per[k] = (k - 0) / (h[0] - 0) * 2 / (2 * h[1] - 2 * h[0])
+                mfl_per[k] = (k - 0) / (h[0] - 0) / (2 * h[1] - 2 * h[0])
             for k in range(h[0], h[1]):
-                mfl_per[k] = (h[1] - k) / (h[1] - h[0]) * 2 / (2 * h[1] - 2 * h[0])
+                mfl_per[k] = (h[1] - k) / (h[1] - h[0]) / (2 * h[1] - 2 * h[0])
         elif h_index == len(h) - 1:  # 上限だけ例外処理
             for k in range(h[h_index - 1], h[h_index]):
                 mfl_per[k] = (
                     (k - h[h_index - 1])
                     / (h[h_index] - h[h_index - 1])
-                    * 2
                     / (2 * h[h_index] - 2 * h[h_index - 1])
                 )
             for k in range(h[h_index], data.shape[0] // 2):
@@ -243,7 +242,6 @@ def mel_filter_bank(data: np.ndarray, sample_rate: int, channel_num: int):
                 mfl_per[k] = (
                     (data.shape[0] // 2 - 1 - k)
                     / (data.shape[0] // 2 - 1 - h[h_index])
-                    * 2
                     / (2 * h[h_index] - 2 * h[h_index - 1])
                 )
         else:
@@ -251,14 +249,12 @@ def mel_filter_bank(data: np.ndarray, sample_rate: int, channel_num: int):
                 mfl_per[k] = (
                     (k - h[h_index - 1])
                     / (h[h_index] - h[h_index - 1])
-                    * 2
                     / (h[h_index + 1] - h[h_index - 1])
                 )
             for k in range(h[h_index], h[h_index + 1]):
                 mfl_per[k] = (
                     (h[h_index + 1] - k)
                     / (h[h_index + 1] - h[h_index])
-                    * 2
                     / (h[h_index + 1] - h[h_index - 1])
                 )
 
@@ -289,6 +285,19 @@ def MFCC(
     for fft_per in np.abs(fft):
         fft_log = 20 * np.log10(fft_per)  # 対数をとる(ついでにdb変換)
         mel_freq, mel_spec = mel_filter_bank(fft_log, sample_rate, 20)
+        if counter == 30:
+            fig0, ax0 = plt.subplots(1, 1)
+            ax0.plot(
+                np.linspace(0, sample_rate // 2, F_size // 2),
+                fft_log[: F_size // 2],
+                label="Spectrogram",
+            )
+            ax0.plot(mel_freq, mel_spec, label="Mel spectrogram")
+            ax0.set_title("Mel spectrogram")
+            ax0.set_xlabel("Frequency [Hz]")
+            ax0.set_ylabel("Amplitude [db]")
+            ax0.legend()
+            fig0.savefig("mel_spec.png")
         mel_spec_result.append(mel_spec)
         dct_result = scipy.fftpack.dct(mel_spec, type=2, norm="ortho", axis=-1)
         mfcc_result.append(dct_result[1 : dim + 1])
