@@ -1,108 +1,219 @@
 import numpy as np
-import pandas as pd
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 import librosa
 import librosa.display
-import matplotlib.pyplot as plt
 from scipy.fftpack import dct
-import argparse
-import math
 
-def delta(mfcc):
-    p_mfcc = np.append(mfcc, np.zeros((1,len(mfcc[0]))), axis=0)
-    
-    delta = np.zeros(mfcc.shape)
-    for i in range(1, len(p_mfcc)-1):
-        delta[i] = p_mfcc[i+1] - p_mfcc[i-1]
-    return delta
+def load_sound_file(filename):
+    """Load sound file.
 
-def mfcc(data, sample_rate, nfilt):
-    frame_size = 0.025
-    frame_stride = 0.01
-    NFFT = 512
-    num_ceps = 12
-    pre_emphasis = 0.97
+    Args:
+        filename (str): file name
+        
+    Returns:
+        data (ndarray): sound data
+        sr (int): sample rate
+    """
+    data, sr = librosa.load(filename, sr=None)
+    return data, sr
 
-    emphasized_signal = np.append(data[0], data[1:] - pre_emphasis * data[:-1])
-    frame_length, frame_step = frame_size * sample_rate, frame_stride * sample_rate  # Convert from seconds to samples
-    signal_length = len(emphasized_signal)
-    frame_length = int(round(frame_length))
-    frame_step = int(round(frame_step))
-    num_frames = int(np.ceil(float(np.abs(signal_length - frame_length)) / frame_step))  # Make sure that we have at least 1 frame
+def delta(data):
+    """Calculate delta of data.
 
-    pad_signal_length = num_frames * frame_step + frame_length
-    z = np.zeros((pad_signal_length - signal_length))
-    pad_signal = np.append(emphasized_signal, z) # Pad Signal to make sure that all frames have equal number of samples without truncating any samples from the original signal
+    Args:
+        data (ndarray): Data to calculate
 
-    indices = np.tile(np.arange(0, frame_length), (num_frames, 1)) + np.tile(np.arange(0, num_frames * frame_step, frame_step), (frame_length, 1)).T
-    frames = pad_signal[indices.astype(np.int32, copy=False)]
-    frames *= np.hamming(frame_length)
+    Returns:
+        ndarray: Delta parameter
+    """
+    delta_result = []
+    data = data.T
+    for data_per in data:
+        delta_result.append([])
+        delta_result[-1].append(0)
+        for i in range(1, len(data_per) - 1):
+            delta_result[-1].append(data_per[i] - data_per[i - 1])  # 前の結果との差を使用
+        delta_result[-1].append(0)
+    return np.array(delta_result).T
 
-    mag_frames = np.absolute(np.fft.rfft(frames, NFFT))  # Magnitude of the FFT
-    pow_frames = ((1.0 / NFFT) * ((mag_frames) ** 2))  # Power Spectrum
+def hz2mel(f):
+    """Hzをmelに変換"""
+    return 2595 * np.log(f / 700.0 + 1.0)
 
+def mel2hz(m):
+    """melをhzに変換"""
+    return 700 * (np.exp(m / 2595) - 1.0)
 
+def mel_filter_bank(fs, N, num_channels):
+    """メルフィルタバンクを作成"""
+    # ナイキスト周波数（Hz）
+    fmax = fs / 2
+    # ナイキスト周波数（mel）
+    melmax = hz2mel(fmax)
+    # 周波数インデックスの最大数
+    nmax = N // 2
+    # 周波数解像度（周波数インデックス1あたりのHz幅）
+    df = fs / N
+    # メル尺度における各フィルタの中心周波数を求める
+    dmel = melmax / (num_channels + 1)
+    melcenters = np.arange(1, num_channels + 1) * dmel
+    # 各フィルタの中心周波数をHzに変換
+    fcenters = mel2hz(melcenters)
+    # 各フィルタの中心周波数を周波数インデックスに変換
+    indexcenter = np.round(fcenters / df)
+    # 各フィルタの開始位置のインデックス
+    indexstart = np.hstack(([0], indexcenter[0 : num_channels - 1]))
+    # 各フィルタの終了位置のインデックス
+    indexstop = np.hstack((indexcenter[1 : num_channels], [nmax]))
+    filterbank = np.zeros((num_channels, nmax))
+    for c in range(0, num_channels):
+        # 三角フィルタの左の直線の傾きから点を求める
+        increment= 1.0 / (indexcenter[c] - indexstart[c])
+        for i in range(int(indexstart[c]), int(indexcenter[c])):
+            filterbank[c, i] = (i - indexstart[c]) * increment
+        # 三角フィルタの右の直線の傾きから点を求める
+        decrement = 1.0 / (indexstop[c] - indexcenter[c])
+        for i in range(int(indexcenter[c]), int(indexstop[c])):
+            filterbank[c, i] = 1.0 - ((i - indexcenter[c]) * decrement)
 
-    low_freq_mel = 0
-    high_freq_mel = (2595 * np.log10(1 + (sample_rate / 2) / 700))  # Convert Hz to Mel
-    mel_points = np.linspace(low_freq_mel, high_freq_mel, nfilt + 2)  # Equally spaced in Mel scale
-    hz_points = (700 * (10**(mel_points / 2595) - 1))  # Convert Mel to Hz
-    bin = np.floor((NFFT + 1) * hz_points / sample_rate)
-
-    fbank = np.zeros((nfilt, int(np.floor(NFFT / 2 + 1))))
-    for m in range(1, nfilt + 1):
-        f_m_minus = int(bin[m - 1])   # left
-        f_m = int(bin[m])             # center
-        f_m_plus = int(bin[m + 1])    # right
-
-        for k in range(f_m_minus, f_m):
-            fbank[m - 1, k] = (k - bin[m - 1]) / (bin[m] - bin[m - 1])
-        for k in range(f_m, f_m_plus):
-            fbank[m - 1, k] = (bin[m + 1] - k) / (bin[m + 1] - bin[m])
-    filter_banks = np.dot(pow_frames, fbank.T)
-    filter_banks = np.where(filter_banks == 0, np.finfo(float).eps, filter_banks)  # Numerical Stability
-    filter_banks = 20 * np.log10(filter_banks)  # dB
-    
-    mfcc = dct(filter_banks, type=2, axis=1, norm='ortho')[:, 1 : (num_ceps + 1)] # Keep 2-13
-    mfcc -= (np.mean(mfcc, axis=0) + 1e-8)
-
-    dlt = delta(mfcc)
-    dltdlt = delta(dlt)
-
-
-    plt.subplot(4, 1, 1)
-    plt.title('Original Signal')
-    plt.specgram(data, Fs = sample_rate)
-    plt.colorbar()
-    plt.ylabel('Hz')    
-
-    plt.subplot(4, 1, 2)
-    librosa.display.specshow(mfcc.T)
-    plt.colorbar()
-    plt.ylabel('MFCC')
-
-    plt.subplot(4, 1, 3)
-    librosa.display.specshow(dlt.T)
-    plt.colorbar()
-    plt.ylabel('Delta')    
-
-    plt.subplot(4, 1, 4)
-    librosa.display.specshow(dltdlt.T)
-    plt.colorbar()
-    plt.ylabel('Delta delta')  
-    plt.xlabel('time')
-    plt.savefig("mfcc.png")
+    return filterbank
 
 
+def calc_mfcc(data, sr, win_length=1024, hop_length=512, mfcc_dim=12):
+    data_length = data.shape[0]
+    window = np.hamming(win_length)
+
+    mfcc = []
+    for i in range(int((data_length - hop_length) / hop_length)):
+        # データの切り取り
+        tmp = data[i * hop_length: i * hop_length + win_length]
+        # 窓関数を適用
+        tmp = tmp * window
+        # FFTの適用
+        tmp = np.fft.rfft(tmp)
+        # パワースペクトルの取得
+        tmp = np.abs(tmp)
+        tmp = tmp[:win_length//2]
+
+        # フィルタバンク
+        channels_n = 20
+        filterbank = mel_filter_bank(sr, win_length, channels_n)
+        # フィルタバンクの適用
+        tmp = np.dot(filterbank, tmp)
+        # log
+        tmp = 20 * np.log10(tmp)
+        # 離散コサイン変換
+        tmp = dct(tmp, norm='ortho')
+        # リフタの適用
+        tmp = tmp[1:mfcc_dim+1]
+
+        mfcc.append(tmp)
+
+    mfcc = np.transpose(mfcc)
+    return mfcc
 
 def main():
-    parser = argparse.ArgumentParser(description='Program for applying digital filter.\nFile name, filter type, filtering frequency are required.')
-    parser.add_argument("-f", dest="filename", help='Filename', required=True)
+    data, fs = librosa.load("sample.wav")
 
-    args = parser.parse_args()
-    wave_array, sr = librosa.load(args.filename, sr=22050)
-    mfcc(wave_array, sr, 40)
+    win_length = 512
+    hop_length = 256
 
+    spectrogram = librosa.stft(data, win_length=win_length, hop_length=hop_length)
+    spectrogram_db = 20 * np.log10(np.abs(spectrogram))
+
+    fig = plt.figure(figsize=(12,10))
+    
+    ax0 = fig.add_subplot(411)
+    img = librosa.display.specshow(
+        spectrogram_db,
+        y_axis="log",
+        sr=fs,
+        cmap="rainbow",
+        ax=ax0
+        )
+    ax0.set_title("Spectrogram")
+    ax0.set_ylabel("frequency [Hz]")
+    fig.colorbar(
+        img,
+        aspect=10,
+        pad=0.01,
+        extend="both",
+        ax=ax0,
+        format="%+2.f dB"
+        )
+
+    # mfcc 表示
+    mfcc_dim = 12
+    ax1 = fig.add_subplot(412)
+    mfcc = calc_mfcc(data, fs, win_length, hop_length, mfcc_dim)
+    wav_time = data.shape[0] // fs
+    extent = [0, wav_time, 0, mfcc_dim]
+    img1 = ax1.imshow(
+        np.flipud(mfcc),
+        aspect="auto",
+        extent=extent,
+        cmap="rainbow"
+        )
+    ax1.set_title("MFCC sequence")
+    ax1.set_ylabel("MFCC")
+    ax1.set_yticks(range(0, 13, 2))
+    fig.colorbar(
+        img1,
+        aspect=10,
+        pad=0.01,
+        extend="both",
+        ax=ax1,
+        format="%+2.f dB"
+        )
+
+    # Δmfcc 表示
+    ax2 = fig.add_subplot(413)
+    dmfcc = delta(mfcc)
+    img2 = ax2.imshow(
+        np.flipud(dmfcc),
+        aspect="auto",
+        extent=extent,
+        cmap="rainbow"
+        )
+    ax2.set(
+        title="ΔMFCC sequence",
+        ylabel="ΔMFCC",
+        yticks=range(0, 13, 2)
+        )
+    fig.colorbar(
+        img2,
+        aspect=10,
+        pad=0.01,
+        extend="both",
+        ax=ax2,
+        format="%+2.f dB"
+        )
+
+    # ΔΔmfcc 表示
+    ax3 = fig.add_subplot(414)
+    ddmfcc = delta(dmfcc)
+    img3 = ax3.imshow(
+        np.flipud(ddmfcc),
+        aspect="auto",
+        extent=extent,
+        cmap="rainbow"
+        )
+    ax3.set(
+        title="ΔΔMFCC sequence",
+        xlabel="time[s]",
+        ylabel="ΔΔMFCC",
+        yticks=range(0, 13, 2)
+        )
+    fig.colorbar(img3,
+                aspect=10,
+                pad=0.01,
+                extend="both",
+                ax=ax3,
+                format="%+2.f dB"
+                )
+
+    fig.tight_layout()
+    fig.savefig("mfcc.png")
 
 if __name__ == "__main__":
     main()
