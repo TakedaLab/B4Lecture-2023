@@ -161,10 +161,12 @@ def pca(data_std, w):
     data_pca = data_std.dot(w)
     print(data_pca.shape)
 
-    plt.scatter(data_pca[:, 0], data_pca[:, 1], c="black")
+    plt.scatter(data_pca[:, 0], data_pca[:, 1], c="black", label="transformed data")
     plt.xlabel("PC 1")
     plt.ylabel("PC 2")
+    plt.title('transformed data')
     plt.tight_layout()
+    plt.legend(loc="best")
     plt.savefig("result/pca_compress.png")
     plt.show()
 
