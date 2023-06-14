@@ -3,6 +3,7 @@ import argparse
 
 import matplotlib.pyplot as plt
 import numpy as np
+import sklearn
 
 import csvOpe
 import GMM
