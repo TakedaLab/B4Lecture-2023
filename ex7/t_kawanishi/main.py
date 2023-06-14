@@ -15,9 +15,7 @@ LOOP = 100
 
 
 def main():
-    """
-    To execute GMM analysis
-    """
+    """To execute GMM analysis."""
     # create parser and argument
     parser = argparse.ArgumentParser(description="This is a program to adapt GMM")
     parser.add_argument("path", help="the path to the dataset.")
