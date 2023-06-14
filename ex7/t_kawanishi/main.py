@@ -1,9 +1,10 @@
 """To adapt GMM."""
 import argparse
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sklearn
+from sklearn.cluster import KMeans
 
 import csvOpe
 import GMM
@@ -11,13 +12,12 @@ import GMM
 # iteration times
 ITER = 10000
 E = 0.0001
+LOOP = 100
 
 
 def main():
     # create parser and argument
-    parser = argparse.ArgumentParser(
-        description="This is a program to adapt GMM"
-        )
+    parser = argparse.ArgumentParser(description="This is a program to adapt GMM")
     parser.add_argument("path", help="the path to the dataset.")
     parser.add_argument(
         "-g", "--group", default=2, type=int, help="The number of clusters"
@@ -34,13 +34,12 @@ def main():
 
     # initialize variable stage
     weight, mean, var = GMM.init(data, args.group)
-    L = GMM.log_likelihood(data, weight, mean, var)
     # print(weight)
     # print(mean.shape)
     # print(var.shape)
-    # print(L)
 
     # get likelihood information
+    L = GMM.log_likelihood(data, weight, mean, var)
     L_g = np.array(L)
     # loop stage
     for i in range(ITER):
@@ -54,6 +53,67 @@ def main():
         L_g = np.hstack((L_g, L_n))
         L = L_n
 
+    """
+    -------------test runtime-----------------------------
+    """
+    """
+    time_s = time.time()
+    for i in range(LOOP):
+        kmeans = KMeans(n_clusters=args.group, max_iter=30, init="random", n_init='auto')
+        kmeans.fit(data)
+        means1 = kmeans.cluster_centers_
+    kmeans_t = (time.time() - time_s) / LOOP
+
+    time_s = time.time()
+    i_sum = 0
+    for j in range(LOOP):
+        weight, mean, var = GMM.init(data, args.group)
+        L = GMM.log_likelihood(data, weight, mean, var)
+        L_g = np.array(L)
+        # loop stage
+        for i in range(ITER):
+            gamma = GMM.update_gamma(data, weight, mean, var)
+            weight, mean, var = GMM.new_para(data, gamma)
+            L_n = GMM.log_likelihood(data, weight, mean, var)
+            # print(L_n)
+            if L_n - L <= E:
+                i_sum += i
+                break
+            L_g = np.hstack((L_g, L_n))
+            L = L_n
+    random_t = (time.time() - time_s )/ LOOP
+
+
+    time_s = time.time()
+    i_sum1 = 0
+    for j in range(LOOP):
+        weight, mean, var = GMM.init(data, args.group)
+        mean = means1
+        L = GMM.log_likelihood(data, weight, mean, var)
+        L_g = np.array(L)
+        # loop stage
+        for i in range(ITER):
+            gamma = GMM.update_gamma(data, weight, mean, var)
+            weight, mean, var = GMM.new_para(data, gamma)
+            L_n = GMM.log_likelihood(data, weight, mean, var)
+            # print(L_n)
+            if L_n - L <= E:
+                i_sum1 += i
+                break
+            L_g = np.hstack((L_g, L_n))
+            L = L_n
+    centroid_t = (time.time() - time_s )/ LOOP
+
+    i_sum = i_sum /LOOP
+    i_sum1 = i_sum1 /LOOP
+    print((str(LOOP) + "  times average").center(40,'-'))
+    print("GMM time with random centroid: "  +  "{:.3f}".format(random_t))
+    print("kmeans to generate centroid: " + "{:.3f}".format(kmeans_t))
+    print("GMM time with kmeans centroid: " + "{:.3f}".format(centroid_t))
+    print(("comparison").center(40,'-'))
+    print("random times: " + "{:.3f}".format(random_t) +",loop: "+ str(i_sum))
+    print("kmeans times: " + "{:.3f}".format(kmeans_t+centroid_t)+",loop: "+ str(i_sum1))
+    """
     """
     --------------plot stage -------------------------------
     """
@@ -70,10 +130,7 @@ def main():
         # range
         x_range = np.array([np.min(data), np.max(data)])
         x_range = np.linspace(x_range[0], x_range[1], 10000).reshape(-1, 1)
-        Y = np.sum(
-            weight[:, np.newaxis] * GMM.gauss(x_range, mean, var),
-            axis=0
-            )
+        Y = np.sum(weight[:, np.newaxis] * GMM.gauss(x_range, mean, var), axis=0)
 
         # plot
         A.plot(data, np.zeros_like(data), ".", color="b", label="data")
@@ -97,15 +154,9 @@ def main():
         x_1_line = np.linspace(np.min(data.T[1]), np.max(data.T[1]), num=100)
         x_0_grid, x_1_grid = np.meshgrid(x_0_line, x_1_line)
         dim = x_0_grid.shape
-        x_point_arr = np.stack(
-            [x_0_grid.flatten(), x_1_grid.flatten()],
-            axis=1
-            )
+        x_point_arr = np.stack([x_0_grid.flatten(), x_1_grid.flatten()], axis=1)
 
-        Y = np.sum(
-            weight[:, np.newaxis] * GMM.gauss(x_point_arr, mean, var),
-            axis=0
-            )
+        Y = np.sum(weight[:, np.newaxis] * GMM.gauss(x_point_arr, mean, var), axis=0)
 
         A = fig.add_subplot(121)
         A.plot(data.T[0], data.T[1], ".", color="b", label="data")
@@ -119,9 +170,7 @@ def main():
             label="centroid",
         )
         contour = A.contour(
-            x_point_arr.T[0].reshape(dim),
-            x_point_arr.T[1].reshape(dim),
-            Y.reshape(dim)
+            x_point_arr.T[0].reshape(dim), x_point_arr.T[1].reshape(dim), Y.reshape(dim)
         )  # 尤度
         A.clabel(contour, fmt="%.2f")
         A.set_xlabel("$X_{1}$")
