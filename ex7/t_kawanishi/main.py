@@ -1,10 +1,9 @@
 """To adapt GMM."""
 import argparse
-import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.cluster import KMeans
+
 
 import csvOpe
 import GMM
@@ -16,6 +15,9 @@ LOOP = 100
 
 
 def main():
+    """
+    To execute GMM analysis
+    """
     # create parser and argument
     parser = argparse.ArgumentParser(description="This is a program to adapt GMM")
     parser.add_argument("path", help="the path to the dataset.")

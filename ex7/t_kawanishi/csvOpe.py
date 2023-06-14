@@ -6,7 +6,7 @@ import numpy as np
 
 
 def get_fname(path: str) -> str:
-    """Get file name
+    """Get file name.
 
     Args:
         path (str): path to the dataset
@@ -20,7 +20,7 @@ def get_fname(path: str) -> str:
 
 
 def read_csv(path: str) -> np.ndarray:
-    """read out csv to matrix
+    """Read out csv to matrix.
 
     Args:
         path (str): the csv file path

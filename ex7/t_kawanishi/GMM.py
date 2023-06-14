@@ -3,7 +3,7 @@ import numpy as np
 
 
 def gauss(x: np.ndarray, mean: np.ndarray, var: np.ndarray) -> np.ndarray:
-    """gaussian function 2-variable.
+    """Gaussian function 2-variable.
 
     Args:
         x (np.ndarray): x
@@ -33,10 +33,7 @@ def gauss(x: np.ndarray, mean: np.ndarray, var: np.ndarray) -> np.ndarray:
     # compute gaussian
     # N.shape = (n_clusters,data)
     b = np.exp(
-        np.array([
-            -1 / 2 * x_m[i] @ var_I[i] @ x_m[i].T
-            for i in range(n_clusters)
-            ])
+        np.array([-1 / 2 * x_m[i] @ var_I[i] @ x_m[i].T for i in range(n_clusters)])
     )
     a = 1 / np.sqrt(((2 * np.pi) ** dim) * var_2)
     N = a[:, np.newaxis, np.newaxis] * b
@@ -48,7 +45,7 @@ def gauss(x: np.ndarray, mean: np.ndarray, var: np.ndarray) -> np.ndarray:
 def init(
     data: np.ndarray, n_clusters: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """generate initial variable.
+    """Generate initial variable.
 
     Args:
         data (np.ndarray): dataset
@@ -69,7 +66,7 @@ def init(
 def update_gamma(
     data: np.ndarray, weight: np.ndarray, mean: np.ndarray, var: np.ndarray
 ) -> np.ndarray:
-    """update gamma.
+    """Update gamma.
 
     Args:
         data (np.ndarray): dataset
@@ -90,7 +87,7 @@ def update_gamma(
 def new_para(
     data: np.ndarray, gamma: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """generate new parameter
+    """Generate new parameter.
 
     Args:
         data (np.ndarray): data
@@ -102,18 +99,12 @@ def new_para(
     """
     N_k = np.sum(gamma, axis=1)  # (n_clusters,)
     a = (1 / N_k)[:, np.newaxis]  # (n_clusters,1)
-    new_mean = a * np.sum(
-        gamma[:, :, np.newaxis] * data,
-        axis=1
-        )  # (n_clusters,dim)
+    new_mean = a * np.sum(gamma[:, :, np.newaxis] * data, axis=1)  # (n_clusters,dim)
     x_mean = np.expand_dims(
         data - new_mean[:, np.newaxis], axis=-1
     )  # (n_clusters, data,dim,1)
     x_mean_T = x_mean.transpose(0, 1, 3, 2)
-    b = np.sum(
-        gamma[:, :, np.newaxis, np.newaxis] * (x_mean @ x_mean_T),
-        axis=1
-        )
+    b = np.sum(gamma[:, :, np.newaxis, np.newaxis] * (x_mean @ x_mean_T), axis=1)
     new_var = a.reshape(a.shape[0], 1, 1) * b
     new_weight = N_k / np.sum(N_k)
     return new_weight, new_mean, new_var
@@ -122,7 +113,7 @@ def new_para(
 def log_likelihood(
     data: np.ndarray, weight: np.ndarray, mean: np.ndarray, var: np.ndarray
 ) -> float:
-    """log-likelihood function.
+    """Log-likelihood function.
 
     Args:
         data (np.ndarray): dataset
