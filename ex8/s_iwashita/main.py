@@ -10,6 +10,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 
 
 class HMM:
+    """Hidden Marcov Model."""
+
     def __init__(self, fname):
         """Define each data.
 
