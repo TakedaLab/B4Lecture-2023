@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from keras.callbacks import EarlyStopping
+from keras.callbacks import TensorBoard
 from sklearn.model_selection import train_test_split
 import argparse
 
@@ -11,10 +12,9 @@ def get_feat(path_list):
     feature_mfcc = np.zeros((len(path_list), 13))
     feature_delta = np.zeros_like(feature_mfcc)
     feature_delta2 = np.zeros_like(feature_mfcc)
-    p_vec = np.zeros((len(path_list), 3))
     for i, path in enumerate(path_list):
         # load wav file
-        data, fs = librosa.load("../" + path)
+        data, fs = librosa.load(path)
         # mfcc
         mfcc = librosa.feature.mfcc(y=data, n_mfcc=13)
         feature_mfcc[i] = np.mean(mfcc, axis=1)
@@ -23,23 +23,25 @@ def get_feat(path_list):
         feature_delta2[i] = np.mean(librosa.feature.delta(mfcc, width=7,
                                                           order=2), axis=1)
     features = np.concatenate([feature_mfcc, feature_delta,
-                               feature_delta2, p_vec], axis=1)
+                               feature_delta2], axis=1)
     return features
 
 
 def recog_nn(input_dim, output_dim):
     he_uni = tf.keras.initializers.HeUniform()
-    xavier_uni = tf.keras.initializers.glorot_uniform()
     input_layer = tf.keras.Input(shape=(input_dim,), name="input")
     hidden1 = tf.keras.layers.Dense(256, activation="relu", name="hidden1",
-                                    kernel_initializer=he_uni)(input_layer)
+                                    kernel_initializer=he_uni,
+                                    bias_initializer="zeros")(input_layer)
     hidden1 = tf.keras.layers.Dropout(rate=0.2, name="dropout1")(hidden1)
     hidden2 = tf.keras.layers.Dense(256, activation="relu", name="hidden2",
-                                    kernel_initializer=he_uni)(hidden1)
+                                    kernel_initializer=he_uni,
+                                    bias_initializer="zeros")(hidden1)
     hidden2 = tf.keras.layers.Dropout(rate=0.2, name="dropout2")(hidden2)
     out_layer = tf.keras.layers.Dense(output_dim, activation="softmax",
                                       name="output",
-                                      kernel_initializer=xavier_uni)(hidden2)
+                                      kernel_initializer='zeros',
+                                      bias_initializer="zeros")(hidden2)
     model = tf.keras.Model(inputs=input_layer, outputs=out_layer)
     return model
 
@@ -64,8 +66,8 @@ def main():
     fname = args.o
 
     # load csv files
-    training = pd.read_csv("../training.csv")
-    test = pd.read_csv("../test.csv")
+    training = pd.read_csv("training.csv")
+    test = pd.read_csv("test.csv")
     # Extract features
     x_train = get_feat(training["path"].values)
     x_test = get_feat(test["path"].values)
@@ -77,14 +79,17 @@ def main():
     X_train, X_val, Y_train, Y_val = train_test_split(
         x_train, y_train, test_size=0.2, random_state=20)
     # create MLP model
+    print(tf.config.list_physical_devices('GPU'))
     model = recog_nn(input_dim=X_train.shape[1], output_dim=10)
     model.compile(loss="sparse_categorical_crossentropy",
                   optimizer="adam", metrics=["accuracy"])
     # fit model
     early_stopping = EarlyStopping(monitor="loss", min_delta=0.001,
                                    patience=10)
+    tensorboard_callback = TensorBoard(log_dir="./log", histogram_freq=1)
     model.fit(x_train, y_train, batch_size=32, epochs=500,
-              verbose=2, callbacks=[early_stopping])
+              validation_data=(X_val, Y_val),
+              verbose=2, callbacks=[early_stopping, tensorboard_callback])
     # evaluate and predict
     score = model.evaluate(X_val, Y_val, verbose=0)
     print("Accuracy: ", score[1])
