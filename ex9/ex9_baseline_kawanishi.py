@@ -29,7 +29,7 @@ from hmmlearn import hmm
 
 
 def my_HMM(input_shape, output_dim):
-     """
+    """
     HMMモデルの構築
     Args:
         input_shape: 入力の形
