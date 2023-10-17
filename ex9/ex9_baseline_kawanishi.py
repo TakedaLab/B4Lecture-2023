@@ -25,8 +25,35 @@ from keras.utils import np_utils
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from hmmlearn import hmm
 
 
+def my_HMM(input_shape, output_dim):
+     """
+    HMMモデルの構築
+    Args:
+        input_shape: 入力の形
+        output_dim: 出力次元
+    Returns:
+        model: 定義済みモデル
+    """   
+
+    value = 1.0 / output_dim
+    tartprob = np.full((1,output_dim),value)
+    transmat = np.full((output_dim,output_dim),value)
+
+    means = np.full((output_dim,input_shape),1)
+
+    covars = 0.1 * np.tile(np.identity(input_shape), (output_dim, 1, 1))
+    model = hmm.GaussianHMM(n_components=output_dim, covariance_type="full")
+
+    model.startprob_ = startprob
+    model.transmat_ = transmat
+    model.means_ = means
+    model.covars_ = covars
+
+    return model
+    
 def my_MLP(input_shape, output_dim):
     """
     MLPモデルの構築
@@ -125,7 +152,7 @@ def plot_history(history):
     plt.title("Model accuracy")
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
-    plt.savefig("result/history_baseline_adam100_acc.png", transparent=True)
+    plt.savefig("result/history_baseline_kawanishi_acc.png", transparent=True)
     plt.show()
 
     plt.figure()
@@ -134,7 +161,7 @@ def plot_history(history):
     plt.title("Model loss")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.savefig("result/history_baseline_adam100_loss.png", transparent=True)
+    plt.savefig("result/history_baseline_kawanishi_loss.png", transparent=True)
     plt.show()
 
 def main():

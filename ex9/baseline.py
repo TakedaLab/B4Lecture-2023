@@ -125,7 +125,7 @@ def plot_history(history):
     plt.title("Model accuracy")
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
-    plt.savefig("result/history_baseline_adam100_acc.png", transparent=True)
+    plt.savefig("result/history_baseline_acc.png", transparent=True)
     plt.show()
 
     plt.figure()
@@ -134,7 +134,7 @@ def plot_history(history):
     plt.title("Model loss")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.savefig("result/history_baseline_adam100_loss.png", transparent=True)
+    plt.savefig("result/history_baseline_loss.png", transparent=True)
     plt.show()
 
 def main():
@@ -192,7 +192,7 @@ def main():
 
     # テストデータに対して推論した結果の保存
     write_result(test["path"].values, predicted_values)
-
+    print(X_train.shape[1])
     # テストデータに対する正解ファイルが指定されていれば評価を行う（accuracyと混同行列）
     if args.path_to_truth:
         test_truth = pd.read_csv(args.path_to_truth)
