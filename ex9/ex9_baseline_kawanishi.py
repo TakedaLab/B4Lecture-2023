@@ -188,7 +188,7 @@ def main():
     )
 
     # モデルの構築
-    model = my_MLP(input_shape=X_train.shape[1], output_dim=10)
+    model = my_HMM(input_shape=X_train.shape[1], output_dim=10)
 
     # モデルの学習基準の設定
     model.compile(loss="categorical_crossentropy",
