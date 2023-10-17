@@ -39,7 +39,7 @@ def my_HMM(input_shape, output_dim):
     """   
 
     value = 1.0 / output_dim
-    tartprob = np.full((1,output_dim),value)
+    startprob = np.full((1,output_dim),value)
     transmat = np.full((output_dim,output_dim),value)
 
     means = np.full((output_dim,input_shape),1)
