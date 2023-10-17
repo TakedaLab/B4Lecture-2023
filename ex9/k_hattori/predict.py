@@ -24,7 +24,8 @@ def get_feat(path_list):
                                                           order=2), axis=1)
     features = np.concatenate([feature_mfcc, feature_delta,
                                feature_delta2], axis=1)
-    return features
+    # return features
+    return feature_mfcc
 
 
 def recog_nn(input_dim, output_dim):
