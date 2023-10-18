@@ -3,8 +3,8 @@
 
 """
 B4輪講最終課題 パターン認識に挑戦してみよう
-ベースラインスクリプト
-特徴量；MFCCの平均（0次項含まず）
+作成したスクリプト
+特徴量；MFCCのをPCAで次元削減したもの
 識別器；MLP
 """
 
@@ -20,40 +20,19 @@ import numpy as np
 import pandas as pd
 from keras.layers.core import Dense, Dropout, Activation
 from keras.models import Sequential
-from keras.optimizers import SGD
+from keras.optimizers import Adam
 from keras.utils import np_utils
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from hmmlearn import hmm
+from sklearn.model_selection import cross_val_score, KFold
+from scipy.stats import sem
+from sklearn.metrics import accuracy_score
+from sklearn.decomposition import PCA
+from keras.callbacks import LearningRateScheduler
 
 
-def my_HMM(input_shape, output_dim):
-    """
-    HMMモデルの構築
-    Args:
-        input_shape: 入力の形
-        output_dim: 出力次元
-    Returns:
-        model: 定義済みモデル
-    """   
-
-    value = 1.0 / output_dim
-    startprob = np.full((1,output_dim),value)
-    transmat = np.full((output_dim,output_dim),value)
-
-    means = np.full((output_dim,input_shape),1)
-
-    covars = 0.1 * np.tile(np.identity(input_shape), (output_dim, 1, 1))
-    model = hmm.GaussianHMM(n_components=output_dim, covariance_type="full")
-
-    model.startprob_ = startprob
-    model.transmat_ = transmat
-    model.means_ = means
-    model.covars_ = covars
-
-    return model
-    
 def my_MLP(input_shape, output_dim):
     """
     MLPモデルの構築
@@ -74,6 +53,9 @@ def my_MLP(input_shape, output_dim):
     model.add(Activation("relu"))
     model.add(Dropout(0.2))
 
+    model.add(Dense(64))
+    model.add(Activation("relu"))
+
     model.add(Dense(output_dim))
     model.add(Activation("softmax"))
 
@@ -83,22 +65,71 @@ def my_MLP(input_shape, output_dim):
     return model
 
 
-def feature_extraction(path_list):
+def feature_extraction(path_list,desired_dimension,noise_strength):
     """
-    wavファイルのリストから特徴抽出を行い，リストで返す
-    扱う特徴量はMFCC13次元の平均（0次は含めない）
+    wavファイルのリストから特徴抽出を行い,リストで返す
+    扱う特徴量はMFCC13次元(0次は含めない)をPCAで次元削減したもの
     Args:
         path_list: 特徴抽出するファイルのパスリスト
+        desired_dimension: ほしい特徴量の次元数
+        noise_strength: ノイズの強さ
     Returns:
-        features: 特徴量
+        mfcc_features_reduced: 特徴量
     """
 
-    load_data = (lambda path: librosa.load(path)[0])
 
-    data = list(map(load_data, path_list))
-    features = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data])
+    mfcc_features = [] # MFCC特徴量を格納するためのリスト
+    max_length_of_all_audio_files = 0  # 最大の長さを格納する変数
 
-    return features
+    for audio_file in path_list:
+        y, sr = librosa.load(audio_file, sr=None)  # 音声データの読み込み
+        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)  # MFCCの抽出
+
+        # 音声データの長さを取得
+        audio_length = len(mfcc[0])
+
+        if audio_length > max_length_of_all_audio_files:
+            max_length_of_all_audio_files = audio_length
+
+    if noise_strength == 0:
+        for audio_file in path_list:
+            y, sr = librosa.load(audio_file, sr=None)  # 音声データの読み込み
+
+            mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)  # MFCCの抽出
+
+            # すべてのMFCC特徴量を同じ長さに整形
+            mfcc = np.pad(mfcc, ((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))), mode='constant')
+
+
+            mfcc_features.append(mfcc)
+
+    else:
+        mfcc_features_noisy = []
+        for audio_file in path_list:
+            y, sr = librosa.load(audio_file, sr=None)  # 音声データの読み込み
+            noisy_y = y + noise_strength * np.random.randn(len(y)) #ノイズ付きデータの生成
+
+            mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)  # MFCCの抽出
+            mfcc_noisy = librosa.feature.mfcc(y=noisy_y, sr=sr, n_mfcc=13)
+
+            # すべてのMFCC特徴量を同じ長さに整形
+            mfcc = np.pad(mfcc, ((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))), mode='constant')
+            mfcc_noisy = np.pad(mfcc_noisy, ((0, 0), (0, max_length_of_all_audio_files - len(mfcc_noisy[0]))), mode='constant')
+
+
+            mfcc_features.append(mfcc)
+            mfcc_features_noisy.append(mfcc_noisy)
+
+        mfcc_features.extend(mfcc_features_noisy)
+
+    pca = PCA(n_components=desired_dimension)
+    mfcc_features_reduced = []
+
+    for mfcc in mfcc_features:
+        mfcc_reduced = pca.fit_transform(mfcc)
+        mfcc_features_reduced.append(mfcc_reduced)
+
+    return np.array(mfcc_features_reduced)
 
 
 def plot_confusion_matrix(predict, ground_truth, title=None, cmap=plt.cm.Blues):
@@ -140,6 +171,7 @@ def write_result(paths, outputs):
         for path, output in zip(paths, outputs):
             f.write("{path},{output}\n".format(path=path, output=output))
 
+
 def plot_history(history):
     # 学習過程をグラフで出力
     # print(history.history.keys())
@@ -164,6 +196,26 @@ def plot_history(history):
     plt.savefig("result/history_baseline_kawanishi_loss.png", transparent=True)
     plt.show()
 
+
+def lr_schedule(epoch):
+    """学習率のスケジュール関数を定義
+
+    Args:
+        epoch: epochの回数
+
+    Returns:
+        learning_rate: 学習率
+    """
+
+    learning_rate = 0.001  # 初期学習率
+    if epoch >= 75:
+        learning_rate = 0.0001
+    if epoch >= 150:
+        learning_rate = 0.00001
+
+    return learning_rate
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--path_to_truth", type=str, help='テストデータの正解ファイルCSVのパス')
@@ -174,11 +226,14 @@ def main():
     test = pd.read_csv("test.csv")
 
     # 学習データの特徴抽出
-    X_train = feature_extraction(training["path"].values)
-    X_test = feature_extraction(test["path"].values)
+    X_train = feature_extraction(training["path"].values,2,0.1)
+    X_test = feature_extraction(test["path"].values,2,0)
 
-    # 正解ラベルをone-hotベクトルに変換 ex. 3 -> [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+    X_train = X_train.reshape(X_train.shape[0], -1)
+    X_test = X_test.reshape(X_test.shape[0], -1)
+
     Y_train = np_utils.to_categorical(y=training["label"], num_classes=10)
+    Y_train = np.concatenate((Y_train,Y_train),axis=0)
 
     # 学習データを学習データとバリデーションデータに分割 (バリデーションセットを20%とした例)
     X_train, X_validation, Y_train, Y_validation = train_test_split(
@@ -188,45 +243,53 @@ def main():
     )
 
     # モデルの構築
-    model = my_HMM(input_shape=X_train.shape[1], output_dim=10)
+    model1 = my_MLP(input_shape=X_train.shape[1], output_dim=10)
 
     # モデルの学習基準の設定
-    model.compile(loss="categorical_crossentropy",
-                  optimizer=SGD(lr=0.002),
-                  metrics=["accuracy"])
+    model1.compile(loss="categorical_crossentropy",
+                    optimizer=Adam(lr=0.001),
+                    metrics=["accuracy"])
+
+    lr_scheduler = LearningRateScheduler(lr_schedule)
 
     # モデルの学習
-    history = model.fit(X_train,
+    history1 = model1.fit(X_train,
                         Y_train,
                         batch_size=32,
-                        epochs=100,
-                        verbose=1)
+                        epochs=200,
+                        verbose=1,
+                        callbacks=[lr_scheduler])
 
 
-    plot_history(history)
-    
+    plot_history(history1)
+
+
     # モデル構成，学習した重みの保存
-    model.save("keras_model/my_model.h5")
+    model1.save("keras_model/my_model.h5")
 
     # バリデーションセットによるモデルの評価
     # モデルをいろいろ試すときはテストデータを使ってしまうとリークになる可能性があるため、このバリデーションセットによる指標を用いてください
-    score = model.evaluate(X_validation, Y_validation, verbose=0)
+    score = model1.evaluate(X_validation, Y_validation, verbose=0)
     print("Validation accuracy: ", score[1])
 
     # 予測結果
-    predict = model.predict(X_test)
+    predict = model1.predict(X_test)
     predicted_values = np.argmax(predict, axis=1)
 
     # テストデータに対して推論した結果の保存
     write_result(test["path"].values, predicted_values)
-
     # テストデータに対する正解ファイルが指定されていれば評価を行う（accuracyと混同行列）
     if args.path_to_truth:
         test_truth = pd.read_csv(args.path_to_truth)
-        truth_values = test_truth['label'].values
-        plot_confusion_matrix(predicted_values, truth_values)
-        print("Test accuracy: ", accuracy_score(truth_values, predicted_values))
-
+        truth_values = test_truth["label"].values
+        test_accuracy = accuracy_score(truth_values, predicted_values)
+        plot_confusion_matrix(
+            predicted_values,
+            truth_values,
+            title=f"Acc. {round(test_accuracy*100,2)}%",
+        )
+        print("Test accuracy: ", test_accuracy)
+        plt.savefig("confusion_matrix.png")
 
 if __name__ == "__main__":
     main()
