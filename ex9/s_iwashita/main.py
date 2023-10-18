@@ -210,8 +210,8 @@ def main():
     args = parser.parse_args()
 
     # データの読み込み
-    training = pd.read_csv("training.csv")
-    test = pd.read_csv("test.csv")
+    training = pd.read_csv("../training.csv")
+    test = pd.read_csv("../test.csv")
 
     # 学習データの特徴抽出
     X_train = feature_extraction(training["path"].values)
