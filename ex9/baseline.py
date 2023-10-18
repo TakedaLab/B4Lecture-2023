@@ -113,32 +113,6 @@ def write_result(paths, outputs):
         for path, output in zip(paths, outputs):
             f.write("{path},{output}\n".format(path=path, output=output))
 
-<<<<<<< HEAD
-def plot_history(history):
-    # 学習過程をグラフで出力
-    # print(history.history.keys())
-    acc = history.history["accuracy"]
-    loss = history.history["loss"]
-    epochs = range(1, len(acc) + 1)
-    plt.figure()
-    plt.plot(epochs, acc)
-    plt.grid()
-    plt.title("Model accuracy")
-    plt.xlabel("Epochs")
-    plt.ylabel("Accuracy")
-    plt.savefig("result/history_baseline_acc.png", transparent=True)
-    plt.show()
-
-    plt.figure()
-    plt.plot(epochs, loss)
-    plt.grid()
-    plt.title("Model loss")
-    plt.xlabel("Epochs")
-    plt.ylabel("Loss")
-    plt.savefig("result/history_baseline_loss.png", transparent=True)
-    plt.show()
-=======
->>>>>>> parent of 6981814 (update)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -192,7 +166,7 @@ def main():
 
     # テストデータに対して推論した結果の保存
     write_result(test["path"].values, predicted_values)
-    print(X_train.shape[1])
+
     # テストデータに対する正解ファイルが指定されていれば評価を行う（accuracyと混同行列）
     if args.path_to_truth:
         test_truth = pd.read_csv(args.path_to_truth)
