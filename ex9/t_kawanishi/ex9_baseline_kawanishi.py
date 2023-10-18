@@ -98,7 +98,8 @@ def feature_extraction(path_list,desired_dimension,noise_strength):
             mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)  # MFCCの抽出
 
             # すべてのMFCC特徴量を同じ長さに整形
-            mfcc = np.pad(mfcc, ((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))), mode='constant')
+            mfcc = np.pad(mfcc,((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))),
+                          mode='constant')
 
 
             mfcc_features.append(mfcc)
@@ -152,6 +153,7 @@ def plot_confusion_matrix(predict, ground_truth, title=None, cmap=plt.cm.Blues):
     plt.tight_layout()
     plt.ylabel("Predicted")
     plt.xlabel("Ground truth")
+    plt.savefig("t_kawanishi/confusion_matrix.png")
     plt.show()
 
 
@@ -289,7 +291,7 @@ def main():
             title=f"Acc. {round(test_accuracy*100,2)}%",
         )
         print("Test accuracy: ", test_accuracy)
-        plt.savefig("t_kawanishi/confusion_matrix.png")
+
 
 if __name__ == "__main__":
     main()
