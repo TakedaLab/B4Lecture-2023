@@ -184,7 +184,7 @@ def plot_history(history):
     plt.title("Model accuracy")
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
-    plt.savefig("result/history_baseline_kawanishi_acc.png", transparent=True)
+    plt.savefig("t_kawanishi/history_baseline_kawanishi_acc.png", transparent=True)
     plt.show()
 
     plt.figure()
@@ -193,7 +193,7 @@ def plot_history(history):
     plt.title("Model loss")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.savefig("result/history_baseline_kawanishi_loss.png", transparent=True)
+    plt.savefig("t_kawanishi/history_baseline_kawanishi_loss.png", transparent=True)
     plt.show()
 
 
@@ -265,7 +265,7 @@ def main():
 
 
     # モデル構成，学習した重みの保存
-    model1.save("keras_model/my_model.h5")
+    model1.save("t_kawanishi/my_model.h5")
 
     # バリデーションセットによるモデルの評価
     # モデルをいろいろ試すときはテストデータを使ってしまうとリークになる可能性があるため、このバリデーションセットによる指標を用いてください
@@ -289,7 +289,7 @@ def main():
             title=f"Acc. {round(test_accuracy*100,2)}%",
         )
         print("Test accuracy: ", test_accuracy)
-        plt.savefig("confusion_matrix.png")
+        plt.savefig("t_kawanishi/confusion_matrix.png")
 
 if __name__ == "__main__":
     main()
