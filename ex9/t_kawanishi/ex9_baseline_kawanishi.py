@@ -165,7 +165,7 @@ def write_result(paths, outputs):
         Nothing
     """
 
-    with open("result.csv", "w") as f:
+    with open("t_kawanishi/result.csv", "w") as f:
         f.write("path,output\n")
         assert len(paths) == len(outputs)
         for path, output in zip(paths, outputs):
