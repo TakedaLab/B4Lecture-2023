@@ -9,8 +9,7 @@ B4輪講最終課題 パターン認識に挑戦してみよう
 """
 
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
 
 import argparse
 
@@ -18,19 +17,14 @@ import librosa
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from keras.layers.core import Dense, Dropout, Activation
+from keras.callbacks import LearningRateScheduler
+from keras.layers.core import Activation, Dense, Dropout
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.utils import np_utils
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
-from hmmlearn import hmm
-from sklearn.model_selection import cross_val_score, KFold
-from scipy.stats import sem
-from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
-from keras.callbacks import LearningRateScheduler
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.model_selection import train_test_split
 
 
 def my_MLP(input_shape, output_dim):
@@ -65,7 +59,7 @@ def my_MLP(input_shape, output_dim):
     return model
 
 
-def feature_extraction(path_list,desired_dimension,noise_strength):
+def feature_extraction(path_list, desired_dimension, noise_strength):
     """
     wavファイルのリストから特徴抽出を行い,リストで返す
     扱う特徴量はMFCC13次元(0次は含めない)をPCAで次元削減したもの
@@ -77,8 +71,7 @@ def feature_extraction(path_list,desired_dimension,noise_strength):
         mfcc_features_reduced: 特徴量
     """
 
-
-    mfcc_features = [] # MFCC特徴量を格納するためのリスト
+    mfcc_features = []  # MFCC特徴量を格納するためのリスト
     max_length_of_all_audio_files = 0  # 最大の長さを格納する変数
 
     for audio_file in path_list:
@@ -98,9 +91,11 @@ def feature_extraction(path_list,desired_dimension,noise_strength):
             mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)  # MFCCの抽出
 
             # すべてのMFCC特徴量を同じ長さに整形
-            mfcc = np.pad(mfcc,((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))),
-                          mode='constant')
-
+            mfcc = np.pad(
+                mfcc,
+                ((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))),
+                mode="constant",
+            )
 
             mfcc_features.append(mfcc)
 
@@ -108,15 +103,22 @@ def feature_extraction(path_list,desired_dimension,noise_strength):
         mfcc_features_noisy = []
         for audio_file in path_list:
             y, sr = librosa.load(audio_file, sr=None)  # 音声データの読み込み
-            noisy_y = y + noise_strength * np.random.randn(len(y)) #ノイズ付きデータの生成
+            noisy_y = y + noise_strength * np.random.randn(len(y))  # ノイズ付きデータの生成
 
             mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)  # MFCCの抽出
             mfcc_noisy = librosa.feature.mfcc(y=noisy_y, sr=sr, n_mfcc=13)
 
             # すべてのMFCC特徴量を同じ長さに整形
-            mfcc = np.pad(mfcc, ((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))), mode='constant')
-            mfcc_noisy = np.pad(mfcc_noisy, ((0, 0), (0, max_length_of_all_audio_files - len(mfcc_noisy[0]))), mode='constant')
-
+            mfcc = np.pad(
+                mfcc,
+                ((0, 0), (0, max_length_of_all_audio_files - len(mfcc[0]))),
+                mode="constant",
+            )
+            mfcc_noisy = np.pad(
+                mfcc_noisy,
+                ((0, 0), (0, max_length_of_all_audio_files - len(mfcc_noisy[0]))),
+                mode="constant",
+            )
 
             mfcc_features.append(mfcc)
             mfcc_features_noisy.append(mfcc_noisy)
@@ -220,7 +222,7 @@ def lr_schedule(epoch):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path_to_truth", type=str, help='テストデータの正解ファイルCSVのパス')
+    parser.add_argument("--path_to_truth", type=str, help="テストデータの正解ファイルCSVのパス")
     args = parser.parse_args()
 
     # データの読み込み
@@ -228,18 +230,19 @@ def main():
     test = pd.read_csv("test.csv")
 
     # 学習データの特徴抽出
-    X_train = feature_extraction(training["path"].values,2,0.1)
-    X_test = feature_extraction(test["path"].values,2,0)
+    X_train = feature_extraction(training["path"].values, 2, 0.1)
+    X_test = feature_extraction(test["path"].values, 2, 0)
 
     X_train = X_train.reshape(X_train.shape[0], -1)
     X_test = X_test.reshape(X_test.shape[0], -1)
 
     Y_train = np_utils.to_categorical(y=training["label"], num_classes=10)
-    Y_train = np.concatenate((Y_train,Y_train),axis=0)
+    Y_train = np.concatenate((Y_train, Y_train), axis=0)
 
     # 学習データを学習データとバリデーションデータに分割 (バリデーションセットを20%とした例)
     X_train, X_validation, Y_train, Y_validation = train_test_split(
-        X_train, Y_train,
+        X_train,
+        Y_train,
         test_size=0.2,
         random_state=20200616,
     )
@@ -248,23 +251,18 @@ def main():
     model1 = my_MLP(input_shape=X_train.shape[1], output_dim=10)
 
     # モデルの学習基準の設定
-    model1.compile(loss="categorical_crossentropy",
-                    optimizer=Adam(lr=0.001),
-                    metrics=["accuracy"])
+    model1.compile(
+        loss="categorical_crossentropy", optimizer=Adam(lr=0.001), metrics=["accuracy"]
+    )
 
     lr_scheduler = LearningRateScheduler(lr_schedule)
 
     # モデルの学習
-    history1 = model1.fit(X_train,
-                        Y_train,
-                        batch_size=32,
-                        epochs=200,
-                        verbose=1,
-                        callbacks=[lr_scheduler])
-
+    history1 = model1.fit(
+        X_train, Y_train, batch_size=32, epochs=200, verbose=1, callbacks=[lr_scheduler]
+    )
 
     plot_history(history1)
-
 
     # モデル構成，学習した重みの保存
     model1.save("t_kawanishi/my_model.h5")
