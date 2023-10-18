@@ -113,6 +113,7 @@ def write_result(paths, outputs):
         for path, output in zip(paths, outputs):
             f.write("{path},{output}\n".format(path=path, output=output))
 
+<<<<<<< HEAD
 def plot_history(history):
     # 学習過程をグラフで出力
     # print(history.history.keys())
@@ -136,6 +137,8 @@ def plot_history(history):
     plt.ylabel("Loss")
     plt.savefig("result/history_baseline_loss.png", transparent=True)
     plt.show()
+=======
+>>>>>>> parent of 6981814 (update)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -169,15 +172,12 @@ def main():
                   metrics=["accuracy"])
 
     # モデルの学習
-    history = model.fit(X_train,
-                        Y_train,
-                        batch_size=32,
-                        epochs=100,
-                        verbose=1)
+    model.fit(X_train,
+              Y_train,
+              batch_size=32,
+              epochs=100,
+              verbose=1)
 
-
-    plot_history(history)
-    
     # モデル構成，学習した重みの保存
     model.save("keras_model/my_model.h5")
 
