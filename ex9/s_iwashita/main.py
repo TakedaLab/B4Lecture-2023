@@ -15,47 +15,7 @@ from keras.layers import Dense, Dropout, Activation
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
-'''
-def my_CNN(x_train):
-    inputs = Input(shape=(x_train.shape[1:]))
 
-    x_1 = cba(Input, filters=32, kernel_size=(1,8), strides=(1,2))
-    x_1 = cba(x_1, filters=32, kernel_size=(8,1), strides=(2,1))
-    x_1 = cba(x_1, filters=64, kernel_size=(1,8), strides=(1,2))
-    x_1 = cba(x_1, filters=64, kernel_size=(8,1), strides=(2,1))
-
-    x_2 = cba(Input, filters=32, kernel_size=(1,16), strides=(1,2))
-    x_2 = cba(x_2, filters=32, kernel_size=(16,1), strides=(2,1))
-    x_2 = cba(x_2, filters=64, kernel_size=(1,16), strides=(1,2))
-    x_2 = cba(x_2, filters=64, kernel_size=(16,1), strides=(2,1))
-
-    x_3 = cba(Input, filters=32, kernel_size=(1,32), strides=(1,2))
-    x_3 = cba(x_3, filters=32, kernel_size=(32,1), strides=(2,1))
-    x_3 = cba(x_3, filters=64, kernel_size=(1,32), strides=(1,2))
-    x_3 = cba(x_3, filters=64, kernel_size=(32,1), strides=(2,1))
-
-    x_4 = cba(Input, filters=32, kernel_size=(1,64), strides=(1,2))
-    x_4 = cba(x_4, filters=32, kernel_size=(64,1), strides=(2,1))
-    x_4 = cba(x_4, filters=64, kernel_size=(1,64), strides=(1,2))
-    x_4 = cba(x_4, filters=64, kernel_size=(64,1), strides=(2,1))
-
-    x = Add()([x_1, x_2, x_3, x_4])
-
-    x = cba(x, filters=128, kernel_size=(1,16), strides=(1,2))
-    x = cba(x, filters=128, kernel_size=(16,1), strides=(2,1))
-
-    x = GlobalAveragePooling2D()(x)
-    x = Dense(num_clesses=10)(x)
-    x = Activation("softmax")(x)
-
-    return x, inputs
-
-def cba(inputs, filters, kernel_size, strides):
-    x = Conv2D(filters, kernel_size=kernel_size, strides=strides, padding='same')(inputs)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    return x
-#'''
 
 def my_MLP(input_shape, output_dim):
     """
@@ -185,6 +145,7 @@ def plot_confusion_matrix(predict, ground_truth, title=None, cmap=plt.cm.Blues):
     plt.ylabel("Predicted")
     plt.xlabel("Ground truth")
     plt.show()
+    plt.savefig("s_iwashita/result.png")
 
 
 def write_result(paths, outputs):
@@ -197,7 +158,7 @@ def write_result(paths, outputs):
         Nothing
     """
 
-    with open("result.csv", "w") as f:
+    with open("s_iwashita/result.csv", "w") as f:
         f.write("path,output\n")
         assert len(paths) == len(outputs)
         for path, output in zip(paths, outputs):
@@ -210,8 +171,8 @@ def main():
     args = parser.parse_args()
 
     # データの読み込み
-    training = pd.read_csv("../training.csv")
-    test = pd.read_csv("../test.csv")
+    training = pd.read_csv("training.csv")
+    test = pd.read_csv("test.csv")
 
     # 学習データの特徴抽出
     X_train = feature_extraction(training["path"].values)
@@ -244,10 +205,10 @@ def main():
               epochs=100,
               verbose=1)
     
-    show_history(history)
+    #show_history(history)
 
     # モデル構成，学習した重みの保存
-    model.save("keras_model/my_model.h5")
+    model.save("s_iwashita/keras_model/my_model.h5")
 
     # バリデーションセットによるモデルの評価
     # モデルをいろいろ試すときはテストデータを使ってしまうとリークになる可能性があるため、このバリデーションセットによる指標を用いてください
