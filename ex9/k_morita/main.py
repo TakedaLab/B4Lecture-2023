@@ -1,76 +1,37 @@
 import os
-
 import pandas as pd
 import numpy as np
 
 import scipy.io.wavfile as wav
 
 from keras.utils.np_utils import to_categorical
-from keras.utils import load_img
-from keras.utils import img_to_array
+# from tensorflow.keras.utils import load_img
+from keras.preprocessing.image import load_img
+from keras.preprocessing.image import img_to_array
 
-from keras.models import Sequential
-from keras import optimizers
-from keras.layers import Dense
-from keras.layers import Activation
-from keras.layers import Flatten
-from keras.layers import Conv2D
-from keras.layers import MaxPooling2D
-from keras.layers import Dropout
-from keras.layers import BatchNormalization
+from tensorflow.keras.models import Sequential
+from tensorflow.keras import optimizers
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import Dropout
+from tensorflow.keras.layers import BatchNormalization
 
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
 
 import matplotlib.pyplot as plt
 
-
-def wavfile_to_spectrogram(
-    audio_path,
-    save_path,
-    spectrogram_dimensions=(64, 64),
-    noverlap=16,
-    cmap="gray_r"
-):
-    if os.path.exists(save_path):
-        return
-
-    smaple_rate, samples = wav.read(audio_path)
-    fig = plt.figure()
-    fig.set_size_inches((
-        spectrogram_dimensions[0]/fig.get_dpi(), 
-        spectrogram_dimensions[1]/fig.get_dpi()
-        ))
-    ax = plt.Axes(fig, [0., 0., 1., 1.,])
-    ax.set_axis_off()
-    fig.add_axes(ax)
-    ax.specgram(samples, cmap=cmap, Fs=2, noverlap=noverlap)
-    ax.xaxis.set_major_locator(plt.NullLocator())
-    ax.yaxis.set_major_locator(plt.NullLocator())
-    fig.savefig(save_path, bbox_inches="tight", pad_inches=0)
+from util import files_to_spectrogram
 
 
-def files_to_spectrogram(
-    files,
-    save_dir,
-    spectrogram_dimensions=(64, 64),
-    noverlap=12,
-    cmap="gray_r"
-):
-    for file_name in files:
-        audio_path = os.path.join(os.path.pardir, file_name)
-        spectrogram_path = os.path.join(save_dir, os.path.basename(file_name).replace(".wav", ".png"))
-        wavfile_to_spectrogram(
-            audio_path,
-            spectrogram_path,
-            spectrogram_dimensions=spectrogram_dimensions,
-            noverlap=noverlap,
-            cmap=cmap
-        )
 
+def my_MLP_1(input_dim, output_dim): # CNN MLP
 
-def my_MLP_1(input_dim, output_dim):
-
-    model = Sequential(name="model_1")
+    model = Sequential(name="CNN")
 
     model.add(Conv2D(48, kernel_size=(2,2), activation="relu", input_shape=input_dim))
     model.add(BatchNormalization())
@@ -101,33 +62,96 @@ def my_MLP_1(input_dim, output_dim):
     return model
 
 
+def plot_history(history, dirname):
+
+    base_dir = "./result"
+    result_dir = os.path.join(base_dir, dirname)
+    os.makedirs(result_dir, exist_ok=True)
+
+    # 学習過程をグラフで出力
+    # print(history.history.keys())
+    acc = history.history["accuracy"]
+    val_acc = history.history["val_accuracy"]
+    loss = history.history["loss"]
+    val_loss = history.history["val_loss"]
+    epochs = range(1, len(acc) + 1)
+    plt.figure()
+    plt.plot(epochs, acc, label="train")
+    plt.plot(epochs, val_acc, label="validation")
+    plt.grid()
+    plt.title("Model accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.savefig(os.path.join(result_dir, "acc.png"))
+    # plt.show()
+
+    plt.figure()
+    plt.plot(epochs, loss, label="train")
+    plt.plot(epochs, val_loss, label="validation")
+    plt.grid()
+    plt.title("Model loss")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(os.path.join(result_dir, "loss.png"))
+    # plt.show()
+
+
+
 def main():
 
-    train_csv = pd.read_csv("train.csv")
-    files = train_csv["path"].values
-    labels = train_csv["label"].values
+    # 前処理
+    train_csv = pd.read_csv("../training.csv")
+    test_csv = pd.read_csv("../test_truth.csv") 
+    files_to_spectrogram(train_csv["path"].values, save_dir="spectrograms/train")
+    files_to_spectrogram(test_csv["path"].values, save_dir="spectrograms/test")
 
-    X_train, X_test, y_train, y_test = train_test_split(files, labels, test_size=0.3)
+    return 
+    train_spec_csv = pd.read_csv("train.csv")
+    files = train_spec_csv["path"].values
+    labels = train_spec_csv["label"].values
+
+    X_train, X_val, y_train, y_val = train_test_split(files, labels, test_size=0.2)
 
     X_train = [img_to_array(load_img(f)) for f in X_train]
-    X_test = [img_to_array(load_img(f)) for f in X_test]
+    X_val = [img_to_array(load_img(f)) for f in X_val]
     y_train = to_categorical(y_train)
-    y_test = to_categorical(y_test)
+    y_val = to_categorical(y_val)
 
     X_train = np.asanyarray(X_train)
-    X_test = np.asanyarray(X_test)
+    X_val = np.asanyarray(X_val)
 
     X_train /= 255
-    X_test /= 255
+    X_val /= 255
 
-    input_dim = (X_train.shape[1], X_train.shaep[2], X_train.shape[3])
+    input_dim = (X_train.shape[1], X_train.shape[2], X_train.shape[3])
     output_dim = 10  # dim(y_train)
 
     model = my_MLP_1(input_dim, output_dim)
-    # model.summary()
+    model.summary()
 
-    model.fit(X_train, y_train, batch_size=50, validation_split=0.2, epochs=100, verbose=1)
+    history = model.fit(X_train, y_train, batch_size=50, validation_data=(X_val, y_val), epochs=200, verbose=2)
 
+    # print(history.history.keys())
+
+    # Result Plot
+    plot_history(history, dirname=model.name)
+
+    # Evaluation
+    files = test_csv["path"].values
+    labels = test_csv["label"].values
+    X_test = [img_to_array(load_img(f)) for f in files]
+    y_test = labels
+    # y_test = to_categorical(labels)
+    X_test = np.asanyarray(X_test)
+    X_test /= 255
+
+    pred = np.argmax(model.predict(X_test), axis=1)
+    print(pred)
+    acc = accuracy_score(pred, y_test)
+    print(acc)
+    
 
 
 if __name__ == "__main__":
