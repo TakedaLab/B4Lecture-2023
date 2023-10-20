@@ -18,7 +18,6 @@ def wavfile_to_spectrogram(
         return
 
     smaple_rate, samples = wav.read(audio_path)
-    print(smaple_rate)
     fig = plt.figure()
     fig.set_size_inches((
         spectrogram_dimensions[0]/fig.get_dpi(), 
@@ -31,7 +30,6 @@ def wavfile_to_spectrogram(
     ax.xaxis.set_major_locator(plt.NullLocator())
     ax.yaxis.set_major_locator(plt.NullLocator())
     fig.savefig(save_path, bbox_inches="tight", pad_inches=0)
-    os.sleep(0.1)
     plt.clf()
     plt.close()
 
@@ -54,9 +52,3 @@ def files_to_spectrogram(
             cmap=cmap
         )
 
-
-if __name__ == "__main__":
-    train_csv = pd.read_csv("../training.csv")
-    test_csv = pd.read_csv("../test_truth.csv") 
-    files_to_spectrogram(train_csv["path"].values, save_dir="spectrograms/train")
-    files_to_spectrogram(test_csv["path"].values, save_dir="spectrograms/test")
