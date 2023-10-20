@@ -4,17 +4,16 @@
 
 import argparse
 
-import pandas as pd
 import librosa
+import matplotlib.pyplot as plt
 import numpy as np
-from keras.utils import np_utils
-from sklearn.model_selection import train_test_split
+import pandas as pd
+from keras.layers import Activation, Dense, Dropout
 from keras.models import Sequential
 from keras.optimizers import SGD
-from keras.layers import Dense, Dropout, Activation
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
+from keras.utils import np_utils
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.model_selection import train_test_split
 
 
 def my_MLP(input_shape, output_dim):
@@ -45,10 +44,12 @@ def my_MLP(input_shape, output_dim):
 
     return model
 
+
 def compress_sound(x, rate=0.9):
     input_len = len(x)
     x = librosa.effects.time_stretch(x, rate)
     return x[:input_len]
+
 
 def stretch_sound(x, rate=1.1):
     input_len = len(x)
@@ -56,12 +57,15 @@ def stretch_sound(x, rate=1.1):
     pad = input_len - len(x)
     return np.concatenate((x, np.zeros(pad, dtype=np.float32)))
 
+
 def add_white_noise(x):
     wn = np.random.randn(len(x))
-    return x + 0.005*wn
+    return x + 0.005 * wn
+
 
 def pitch_shift_up(x):
     return librosa.effects.pitch_shift(x, 22050, +1)
+
 
 def pitch_shift_down(x):
     return librosa.effects.pitch_shift(x, 22050, -1)
@@ -77,7 +81,7 @@ def feature_extraction(path_list):
         features: 特徴量
     """
 
-    load_data = (lambda path: librosa.load(path)[0])
+    load_data = lambda path: librosa.load(path)[0]
 
     data = list(map(load_data, path_list))
     data_conpress = list(map(compress_sound, data))
@@ -86,16 +90,47 @@ def feature_extraction(path_list):
     data_pitch_shift_up = list(map(pitch_shift_up, data))
     data_pitch_shift_down = list(map(pitch_shift_down, data))
 
-    features = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data])
-    features_conpress = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data_conpress])
-    features_stretch = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data_stretch])
-    features_add_white_noise = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data_add_white_noise])
-    features_pitch_shift_up = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data_pitch_shift_up])
-    features_pitch_shift_down = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data_pitch_shift_down])
+    features = np.array(
+        [np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data]
+    )
+    features_conpress = np.array(
+        [np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data_conpress]
+    )
+    features_stretch = np.array(
+        [np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data_stretch]
+    )
+    features_add_white_noise = np.array(
+        [
+            np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1)
+            for y in data_add_white_noise
+        ]
+    )
+    features_pitch_shift_up = np.array(
+        [
+            np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1)
+            for y in data_pitch_shift_up
+        ]
+    )
+    features_pitch_shift_down = np.array(
+        [
+            np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1)
+            for y in data_pitch_shift_down
+        ]
+    )
 
-    features = np.concatenate((features, features_conpress, features_stretch, features_add_white_noise, features_pitch_shift_up, features_pitch_shift_down))
+    features = np.concatenate(
+        (
+            features,
+            features_conpress,
+            features_stretch,
+            features_add_white_noise,
+            features_pitch_shift_up,
+            features_pitch_shift_down,
+        )
+    )
 
     return features
+
 
 def feature_extraction_test(path_list):
     """
@@ -107,12 +142,15 @@ def feature_extraction_test(path_list):
         features: 特徴量
     """
 
-    load_data = (lambda path: librosa.load(path)[0])
+    load_data = lambda path: librosa.load(path)[0]
 
     data = list(map(load_data, path_list))
-    features = np.array([np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data])
+    features = np.array(
+        [np.mean(librosa.feature.mfcc(y=y, n_mfcc=13), axis=1) for y in data]
+    )
 
     return features
+
 
 def show_history(history):
     fig, ax = plt.subplots(1, 2, figsize=(15, 5))
@@ -123,6 +161,7 @@ def show_history(history):
     ax[0].legend()
     ax[1].legend()
     plt.savefig("result/history.png")
+
 
 def plot_confusion_matrix(predict, ground_truth, title=None, cmap=plt.cm.Blues):
     """
@@ -167,7 +206,7 @@ def write_result(paths, outputs):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path_to_truth", type=str, help='テストデータの正解ファイルCSVのパス')
+    parser.add_argument("--path_to_truth", type=str, help="テストデータの正解ファイルCSVのパス")
     args = parser.parse_args()
 
     # データの読み込み
@@ -184,7 +223,8 @@ def main():
 
     # 学習データを学習データとバリデーションデータに分割 (バリデーションセットを20%とした例)
     X_train, X_validation, Y_train, Y_validation = train_test_split(
-        X_train, Y_train,
+        X_train,
+        Y_train,
         test_size=0.2,
         random_state=20200616,
     )
@@ -194,18 +234,14 @@ def main():
     model = my_MLP(input_shape=X_train.shape[1], output_dim=10)
 
     # モデルの学習基準の設定
-    model.compile(loss="categorical_crossentropy",
-                  optimizer=SGD(lr=0.002),
-                  metrics=["accuracy"])
+    model.compile(
+        loss="categorical_crossentropy", optimizer=SGD(lr=0.002), metrics=["accuracy"]
+    )
 
     # モデルの学習
-    history = model.fit(X_train,
-              Y_train,
-              batch_size=32,
-              epochs=100,
-              verbose=1)
-    
-    #show_history(history)
+    history = model.fit(X_train, Y_train, batch_size=32, epochs=100, verbose=1)
+
+    # show_history(history)
 
     # モデル構成，学習した重みの保存
     model.save("s_iwashita/keras_model/my_model.h5")
@@ -225,7 +261,7 @@ def main():
     # テストデータに対する正解ファイルが指定されていれば評価を行う（accuracyと混同行列）
     if args.path_to_truth:
         test_truth = pd.read_csv(args.path_to_truth)
-        truth_values = test_truth['label'].values
+        truth_values = test_truth["label"].values
         plot_confusion_matrix(predicted_values, truth_values)
         print("Test accuracy: ", accuracy_score(truth_values, predicted_values))
 
