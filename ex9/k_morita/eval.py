@@ -16,11 +16,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 
 def load_test_data():
-    test_csv = pd.read_csv("../test_truth.csv")
+    test_csv = pd.read_csv("./test.csv")
     files_to_spectrogram(test_csv["path"].values, save_dir="spectrograms/test")
-
-    test_csv["path"] = test_csv.apply(
-        lambda row: os.path.join("./spectrograms/test", os.path.basename(row["path"])).replace(".wav", ".png"), axis=1)
 
     files = test_csv["path"].values
     labels = test_csv["label"].values
@@ -46,14 +43,10 @@ def main():
     # plt.savefig(f"./result/{model.name}/eval_cm.png")
 
     pred = np.argmax(model(X_test), axis=1)
-    print(pred)
-    print()
     acc = accuracy_score(pred, y_test)
 
     print("*** Evaluation ***")
     print("Accuracy:", acc)
-    
-
 
 
 if __name__ == "__main__":

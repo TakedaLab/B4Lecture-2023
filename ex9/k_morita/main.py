@@ -103,11 +103,9 @@ def main():
 
     # 前処理
     train_csv = pd.read_csv("../training.csv")
-    test_csv = pd.read_csv("../test_truth.csv") 
-    files_to_spectrogram(train_csv["path"].values, save_dir="spectrograms/train")
-    files_to_spectrogram(test_csv["path"].values, save_dir="spectrograms/test")
+    # files_to_spectrogram(train_csv["path"].values, save_dir="spectrograms/train")
+    # files_to_spectrogram(test_csv["path"].values, save_dir="spectrograms/test")
 
-    return 
     train_spec_csv = pd.read_csv("train.csv")
     files = train_spec_csv["path"].values
     labels = train_spec_csv["label"].values
@@ -132,26 +130,11 @@ def main():
     model.summary()
 
     history = model.fit(X_train, y_train, batch_size=50, validation_data=(X_val, y_val), epochs=200, verbose=2)
-
+    model.save(model.name)
     # print(history.history.keys())
 
     # Result Plot
     plot_history(history, dirname=model.name)
-
-    # Evaluation
-    files = test_csv["path"].values
-    labels = test_csv["label"].values
-    X_test = [img_to_array(load_img(f)) for f in files]
-    y_test = labels
-    # y_test = to_categorical(labels)
-    X_test = np.asanyarray(X_test)
-    X_test /= 255
-
-    pred = np.argmax(model.predict(X_test), axis=1)
-    print(pred)
-    acc = accuracy_score(pred, y_test)
-    print(acc)
-    
 
 
 if __name__ == "__main__":
