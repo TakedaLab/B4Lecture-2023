@@ -1,48 +1,38 @@
 import os
-import pandas as pd
-import numpy as np
-
-import scipy.io.wavfile as wav
 
 from keras.utils.np_utils import to_categorical
-# from tensorflow.keras.utils import load_img
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
+import matplotlib.pyplot as plt
+import numpy as np
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras import optimizers
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import BatchNormalization
 
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score
-
-import matplotlib.pyplot as plt
-
 from util import files_to_spectrogram
 
 
-
-def my_MLP_1(input_dim, output_dim): # CNN MLP
-
+def my_MLP_1(input_dim, output_dim):  # CNN MLP
     model = Sequential(name="CNN")
 
-    model.add(Conv2D(48, kernel_size=(2,2), activation="relu", input_shape=input_dim))
+    model.add(Conv2D(48, kernel_size=(2, 2), activation="relu", input_shape=input_dim))
     model.add(BatchNormalization())
 
-    model.add(Conv2D(64, kernel_size=(2,2), activation="relu"))
+    model.add(Conv2D(64, kernel_size=(2, 2), activation="relu"))
     model.add(BatchNormalization())
 
-    model.add(Conv2D(128, kernel_size=(2,2), activation="relu"))
+    model.add(Conv2D(128, kernel_size=(2, 2), activation="relu"))
     model.add(BatchNormalization())
 
-    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
@@ -57,19 +47,19 @@ def my_MLP_1(input_dim, output_dim): # CNN MLP
 
     model.add(Dense(output_dim, activation="softmax"))
 
-    model.compile(loss="categorical_crossentropy", optimizer="Adadelta", metrics=["accuracy"])
+    model.compile(
+        loss="categorical_crossentropy", optimizer="Adadelta", metrics=["accuracy"]
+    )
 
     return model
 
 
 def plot_history(history, dirname):
-
     base_dir = "./result"
     result_dir = os.path.join(base_dir, dirname)
     os.makedirs(result_dir, exist_ok=True)
 
     # 学習過程をグラフで出力
-    # print(history.history.keys())
     acc = history.history["accuracy"]
     val_acc = history.history["val_accuracy"]
     loss = history.history["loss"]
@@ -84,7 +74,6 @@ def plot_history(history, dirname):
     plt.ylabel("Accuracy")
     plt.legend()
     plt.savefig(os.path.join(result_dir, "acc.png"))
-    # plt.show()
 
     plt.figure()
     plt.plot(epochs, loss, label="train")
@@ -95,16 +84,12 @@ def plot_history(history, dirname):
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(os.path.join(result_dir, "loss.png"))
-    # plt.show()
-
 
 
 def main():
-
     # 前処理
     train_csv = pd.read_csv("../training.csv")
-    # files_to_spectrogram(train_csv["path"].values, save_dir="spectrograms/train")
-    # files_to_spectrogram(test_csv["path"].values, save_dir="spectrograms/test")
+    files_to_spectrogram(train_csv["path"].values, save_dir="spectrograms/train")
 
     train_spec_csv = pd.read_csv("train.csv")
     files = train_spec_csv["path"].values
@@ -124,16 +109,23 @@ def main():
     X_val /= 255
 
     input_dim = (X_train.shape[1], X_train.shape[2], X_train.shape[3])
-    output_dim = 10  # dim(y_train)
+    output_dim = 10 # dim(output)
 
+    # 学習
     model = my_MLP_1(input_dim, output_dim)
     model.summary()
 
-    history = model.fit(X_train, y_train, batch_size=50, validation_data=(X_val, y_val), epochs=200, verbose=2)
-    model.save(model.name)
-    # print(history.history.keys())
+    history = model.fit(
+        X_train,
+        y_train,
+        batch_size=50,
+        validation_data=(X_val, y_val),
+        epochs=200,
+        verbose=2,
+    )
 
-    # Result Plot
+    # save
+    model.save(model.name)
     plot_history(history, dirname=model.name)
 
 
