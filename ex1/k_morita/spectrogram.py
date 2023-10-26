@@ -56,9 +56,9 @@ def istft(fft_array, sr, win_func=np.hamming, win_len=2048, ol=0.75):
     """
     # recover fft_array
     if win_len & 1:  # if window length is odd
-        fft_array = np.concatenate([fft_array, fft_array[::-1, :][:-1]])
+        fft_array = np.concatenate([fft_array[:1:-1], fft_array])
     else:
-        fft_array = np.concatenate([fft_array, fft_array[::-1, :][:]])
+        fft_array = np.concatenate([fft_array[::-1], fft_array])
 
     fft_array = fft_array.T
 
